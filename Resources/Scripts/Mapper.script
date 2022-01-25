@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="5" UUID="5547c7a6-2b4a-4699-819e-34470e71b67e" created="Tue Jan 25 12:55:06 CET 2022" createdBy="Eddie Hartman" main="Mapper" modified="Tue Jan 25 13:03:13 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <Script name="Mapper">
+        <ModTime>1643112193011</ModTime>
+        <parameter name="includeFiles"/>
+        <parameter name="script"><![CDATA[// Must load Logger before this script!!
+
+_VRS = "20220125 1255"; // Initial version
+
+var Mapper = function(mappingFileName) {
+	this.mappingFileName = mappingFileName || null;
+	this.map = {};
+	
+	// Initialization method - prints out version
+	this.init = function() {
+		log.msg("Mapper v" + _VRS);
+		
+		this.readInMappingFile();
+	}
+	
+	// Reads in the mapping file
+	this.readInMappingFile = function() {
+		if (this.mappingFileName == null) {
+			throw "No mapping file specified in constructor to Mapper";
+		}
+		
+		//Read mapping file
+		var file = system.openFileForInput(this.mappingFileName);
+		this.map = {};
+		while((line = file.readLine()) != null) {
+			var parts = line.split("=");
+			if (parts.length == 2) {
+				this.map[parts[0].trim()] = parts[1].trim();
+			}
+		}
+
+	}
+	
+	// Init code
+	this.init();
+}]]></parameter>
+    </Script>
+</MetamergeConfig>

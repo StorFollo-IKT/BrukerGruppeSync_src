@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="15" UUID="3a1c731f-875e-4370-b826-aaf1ba04e039" created="Tue Jan 25 12:27:56 CET 2022" createdBy="Eddie Hartman" main="Logger" modified="Tue Jan 25 12:47:52 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <Script name="Logger">
+        <ModTime>1643111271611</ModTime>
+        <parameter name="includeFiles"/>
+        <parameter name="script"><![CDATA[_VRS = "20220125 1228"; // Initial version
+
+var Logger = function() {
+	this.alName = task.getShortName();
+	this.errorLog = null;
+	
+	// Initialization method - prints out version
+	this.init = function() {
+		this.msg("Logger v" + _VRS);
+	}
+	
+	// Function to log out a message
+	this.msg = function(lvl, msg) {
+		// Check if no parameter were passed, or only one
+		if (typeof lvl == "undefined") {
+			lvl = "INFO";
+			msg = "";
+		} else
+		if (typeof msg == "undefined") {
+			msg = lvl;
+			lvl = "INFO";
+		}
+		
+		task.logmsg(lvl, msg);
+	}
+	
+	// For logging errors
+	this.error = function(msg) {
+		this.msg("ERROR", msg);
+		
+		if (this.errorLog == null) {
+			this.errorLog = system.openFileForOutput("logs/" + this.alName + "_error.log");
+		}
+		
+		this.errorLog.write(msg);
+		this.errorLog.newLine();
+		this.errorLog.flush();
+	}
+	
+	// Init code
+	this.init();
+}
+
+var log = new Logger();]]></parameter>
+    </Script>
+</MetamergeConfig>
