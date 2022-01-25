@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="1" UUID="1d6ed09d-cbfd-422d-903a-5acafd469df8" created="Tue Jan 25 21:07:48 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Tue Jan 25 21:07:48 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="1" UUID="5a92184e-4a7f-4434-b63b-eab27711ac30" created="Tue Jan 25 21:12:48 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Tue Jan 25 21:12:48 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
     <AssemblyLine name="BrukerGruppeSync">
         <ModTime>1643112140960</ModTime>
         <Settings>
