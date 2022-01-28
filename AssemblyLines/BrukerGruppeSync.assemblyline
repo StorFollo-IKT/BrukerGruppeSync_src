@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="102" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Fri Jan 28 13:24:57 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="124" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Fri Jan 28 23:22:52 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
     <AssemblyLine name="BrukerGruppeSync">
-        <ModTime>1643372697130</ModTime>
+        <ModTime>1643408572123</ModTime>
         <Settings>
             <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
             <parameter name="automapattributes">false</parameter>
@@ -19,11 +19,11 @@ ScriptLib
         <SandboxConfig/>
         <SimulationConfig>
             <SimulationStates>
-                <Component name="Read in map" state="Enabled"/>
+                <Component name="Read Group file" state="Enabled"/>
                 <Component name="Agresso Stamdata" state="Enabled"/>
                 <Component name="Read Organizations" state="Enabled"/>
                 <Component name="Process Users" state="Enabled"/>
-                <Component name="Set more manager info" state="Enabled"/>
+                <Component name="Set manager and group" state="Enabled"/>
                 <Component name="Map to AD" state="Enabled"/>
             </SimulationStates>
             <ProxySettings/>
@@ -31,10 +31,23 @@ ScriptLib
         <LogConfig/>
         <ContainerEF name="EntryFeedContainer"/>
         <ContainerDF name="DataFlowContainer">
-            <ModTime>1643372697130</ModTime>
-            <Script name="Read in map">
-                <ModTime>1643112140960</ModTime>
-                <parameter name="script">var map = new Mapper("BrukerGruppeSync/mapping_resource.map");</parameter>
+            <ModTime>1643408572123</ModTime>
+            <Script name="Read Group file">
+                <ModTime>1643407136254</ModTime>
+                <parameter name="script"><![CDATA[groupFile = system.getConnector("GroupFile");
+groupFile.initialize(null);
+groupFile.selectEntries();
+
+groups = {};
+while ((entry = groupFile.getNextEntry()) != null) {
+	var line = entry.getString("line");
+	var p = line.indexOf(";");
+	if (p > 0) {
+		groups[line.substring(0,p).trim()] = line.substring(p+1).trim().replaceAll(";", "|");
+	}
+}
+
+groupFile.terminate();]]></parameter>
             </Script>
             <Connector name="Agresso Stamdata">
                 <InheritFrom>system:/Connectors/ibmdi.FileSystem</InheritFrom>
@@ -115,7 +128,7 @@ for(var org in list){
 }]]></parameter>
             </Script>
             <Script name="Process Users">
-                <ModTime>1643372697130</ModTime>
+                <ModTime>1643408554871</ModTime>
                 <parameter name="script"><![CDATA[var list = stamdata.getElementsByTagName("Resource");
 var users = {};
 for(var resource in list){
@@ -143,18 +156,28 @@ for(var resource in list){
 		user.PostIdDescription = emp.PostIdDescription.getValue();
 		user.MainPos = emp.MainPosition.getValue();
 		user.DateTo = emp.dateTo.getValue();
+		user.Percentage = emp.Percentage.getValue();
+
+		// Get department
+		var relList = emp.getElementsByTagName("Relation");
+		for (var rel in relList) {
+			if (rel.@ElementType == "ORGANIZATIONAL_UNIT") {
+				user.DepartmentId = rel.Value.getValue();
+				user.DepartmentName = rel.Description.getValue();
+				user.FromDate = rel.DateFrom.getValue();
+				user.ToDate = rel.DateTo.getValue();
+			}
+		}
 
 		// Get Ansvar
 		var relList = emp.Relations.getChildNodes();
-		var lastToDate = "";
 		for (var rel in relList) {
-			if (rel.@Name != "Ansvar" || 
-				(rel.ToDate && rel.ToDate.getValue() < lastToDate)) {
-				continue;
-			}
-			if (rel.ToDate) lastToDate = rel.ToDate.getValue();
-			user.Ansvar = rel.Value.getValue();
-			user.OtherPostIDs = rel.Description.getValue();
+			if (rel.@Name == "Ansvar") {
+				user.Ansvar = rel.Value.getValue();
+			} else
+			if (rel.@Name == "Organisasjonsenhet") {
+				user.Group = rel.Value.getValue();
+			}	
 		}
 	}
 	
@@ -167,14 +190,12 @@ for(var resource in list){
 		for (var rel in relList) {
 			if (rel.@Name == "Ansvar") {
 				postID = "Arbeidssted=" + rel.Value.getValue();
-			} else
-			if (rel.@Name == "Arbeidstid pr. uke") {
-				postID += "=" + (37.5/new java.lang.Double(rel.Value.getValue().replace(",",".")))*100 + "%";
+				postID += "=" + user.Percentage + "%";
+				otherPostIDs.push(postID + "=" + emp.PostIdDescription);
 			}
 		}
-		otherPostIDs.push(postID + "=" + emp.PostIdDescription);
 	}
-	user.OtherPostIDs = otherPostIDs.join("=");
+	user.OtherPostIDs = otherPostIDs.join("=") + "=";
 
 	// Get email addresses
 	var addr = resource.getElementsByTagName("Address");
@@ -183,17 +204,6 @@ for(var resource in list){
 		user.Mail = emails[0].getValue();
 	}
 
-	// Get department
-	var deptList = resource.getElementsByTagName("Relation");
-	for (var dept in deptList) {
-		if (dept.@ElementType == "ORGANIZATIONAL_UNIT") {
-			user.DepartmentId = dept.Value.getValue();
-			user.DepartmentName = dept.Description.getValue();
-			user.FromDate = dept.DateFrom.getValue();
-			user.ToDate = dept.DateTo.getValue();
-		}
-	}
-	
 	// Set manager
 	var org = orgs[user.DepartmentId];
 	if (typeof org == "undefined") {
@@ -204,8 +214,8 @@ for(var resource in list){
 	}
 }]]></parameter>
             </Script>
-            <Script name="Set more manager info">
-                <ModTime>1643203740661</ModTime>
+            <Script name="Set manager and group">
+                <ModTime>1643407124305</ModTime>
                 <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
 	var mgr = users[user.ManagerId];
@@ -217,13 +227,20 @@ for(var resource in list){
 	}
 	user.ManagerName = mgr.FirstName + " " + mgr.Surname;
 	user.ManagerEmail = mgr.Mail;	
+	
+	// Now to set the group based on the Group file
+	var groupLine = groups["everyone"];
+	if (groups[user.Group]) {
+		groupLine += "|" + groupLine;
+	}
+	user.Groups = groupLine;
 }]]></parameter>
             </Script>
             <Script name="Map to AD">
-                <ModTime>1643367577415</ModTime>
+                <ModTime>1643408572123</ModTime>
                 <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
-	if (user.resourceId != "58464") continue;
+	if (user.ResourceID != "58464") continue;
 	log.msg(entryStr(work.fromJSON(toJson(user))));
 }]]></parameter>
             </Script>
