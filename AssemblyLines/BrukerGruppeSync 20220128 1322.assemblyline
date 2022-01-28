@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="1" UUID="94dec5d4-a4a0-4aca-a319-33fb2f8404e6" created="Fri Jan 28 13:37:50 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Fri Jan 28 13:37:50 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="100" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Fri Jan 28 13:21:39 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
     <AssemblyLine name="BrukerGruppeSync">
-        <ModTime>1643372697130</ModTime>
+        <ModTime>1643372499009</ModTime>
         <Settings>
             <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
             <parameter name="automapattributes">false</parameter>
@@ -12,7 +12,9 @@ ScriptLib
 ]]></parameter>
             <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
         </Settings>
-        <Hooks/>
+        <Hooks>
+            <ModTime>1642763283974</ModTime>
+        </Hooks>
         <CheckpointConfig/>
         <SandboxConfig/>
         <SimulationConfig>
@@ -29,6 +31,7 @@ ScriptLib
         <LogConfig/>
         <ContainerEF name="EntryFeedContainer"/>
         <ContainerDF name="DataFlowContainer">
+            <ModTime>1643372499009</ModTime>
             <Script name="Read in map">
                 <ModTime>1643112140960</ModTime>
                 <parameter name="script">var map = new Mapper("BrukerGruppeSync/mapping_resource.map");</parameter>
@@ -40,6 +43,7 @@ ScriptLib
                 <ConnectorState>Enabled</ConnectorState>
                 <Configuration>
                     <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1643141783739</ModTime>
                     <parameter name="filePath">_data/Stamdata3_FSI_AL.xml</parameter>
                 </Configuration>
                 <Parser>
@@ -111,7 +115,7 @@ for(var org in list){
 }]]></parameter>
             </Script>
             <Script name="Process Users">
-                <ModTime>1643372697130</ModTime>
+                <ModTime>1643372499009</ModTime>
                 <parameter name="script"><![CDATA[var list = stamdata.getElementsByTagName("Resource");
 var users = {};
 for(var resource in list){
@@ -119,7 +123,7 @@ for(var resource in list){
 	users[userId] = {};
 	var user = users[userId];
 	
-	user.ResourceID = userId;
+	user.resourceId = userId;
 	user.givenName = resource.FirstName.getValue();
 	user.sn = resource.Surname.getValue();
 	user.SSN = resource.SocialSecurityNumber.getValue();
@@ -171,6 +175,7 @@ for(var resource in list){
 		otherPostIDs.push(postID + "=" + emp.PostIdDescription);
 	}
 	user.OtherPostIDs = otherPostIDs.join("=");
+	
 
 	// Get email addresses
 	var addr = resource.getElementsByTagName("Address");

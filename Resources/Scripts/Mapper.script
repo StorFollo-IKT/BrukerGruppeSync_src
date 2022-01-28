@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="5" UUID="5547c7a6-2b4a-4699-819e-34470e71b67e" created="Tue Jan 25 12:55:06 CET 2022" createdBy="Eddie Hartman" main="Mapper" modified="Tue Jan 25 13:03:13 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="6" UUID="5547c7a6-2b4a-4699-819e-34470e71b67e" created="Tue Jan 25 12:55:06 CET 2022" createdBy="Eddie Hartman" main="Mapper" modified="Wed Jan 26 20:40:57 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
     <Script name="Mapper">
-        <ModTime>1643112193011</ModTime>
+        <ModTime>1643226056614</ModTime>
         <parameter name="includeFiles"/>
         <parameter name="script"><![CDATA[// Must load Logger before this script!!
 
@@ -32,7 +32,7 @@ var Mapper = function(mappingFileName) {
 				this.map[parts[0].trim()] = parts[1].trim();
 			}
 		}
-
+		file.close();
 	}
 	
 	// Init code

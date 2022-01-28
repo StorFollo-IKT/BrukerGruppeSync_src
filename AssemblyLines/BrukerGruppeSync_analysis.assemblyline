@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="1" UUID="94dec5d4-a4a0-4aca-a319-33fb2f8404e6" created="Fri Jan 28 13:37:50 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Fri Jan 28 13:37:50 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
-    <AssemblyLine name="BrukerGruppeSync">
-        <ModTime>1643372697130</ModTime>
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="74" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync_analysis" modified="Fri Jan 28 13:03:10 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
+    <AssemblyLine name="BrukerGruppeSync_analysis">
+        <ModTime>1643371386561</ModTime>
         <Settings>
             <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
             <parameter name="automapattributes">false</parameter>
@@ -12,7 +12,9 @@ ScriptLib
 ]]></parameter>
             <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
         </Settings>
-        <Hooks/>
+        <Hooks>
+            <ModTime>1642763283974</ModTime>
+        </Hooks>
         <CheckpointConfig/>
         <SandboxConfig/>
         <SimulationConfig>
@@ -29,6 +31,7 @@ ScriptLib
         <LogConfig/>
         <ContainerEF name="EntryFeedContainer"/>
         <ContainerDF name="DataFlowContainer">
+            <ModTime>1643371386561</ModTime>
             <Script name="Read in map">
                 <ModTime>1643112140960</ModTime>
                 <parameter name="script">var map = new Mapper("BrukerGruppeSync/mapping_resource.map");</parameter>
@@ -40,6 +43,7 @@ ScriptLib
                 <ConnectorState>Enabled</ConnectorState>
                 <Configuration>
                     <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1643141783739</ModTime>
                     <parameter name="filePath">_data/Stamdata3_FSI_AL.xml</parameter>
                 </Configuration>
                 <Parser>
@@ -87,7 +91,7 @@ ScriptLib
                 <PoolInstance/>
             </Connector>
             <Script name="Read Organizations">
-                <ModTime>1643201870935</ModTime>
+                <ModTime>1643141900972</ModTime>
                 <parameter name="script"><![CDATA[stamdata = work.clone();
 var list = stamdata.getElementsByTagName("Organisation");
 var orgs = {};
@@ -103,15 +107,14 @@ for(var org in list){
 		id: org.Id.getValue(),
 		manager: mgr,
 		name: org.Name.getValue(),
-		companycode: org.CompanyCode.getValue(),
-		status: org.Status.getValue()
+		companycode: org.CompanyCode.getValue()
 	} 
 
 
 }]]></parameter>
             </Script>
             <Script name="Process Users">
-                <ModTime>1643372697130</ModTime>
+                <ModTime>1643371386561</ModTime>
                 <parameter name="script"><![CDATA[var list = stamdata.getElementsByTagName("Resource");
 var users = {};
 for(var resource in list){
@@ -119,58 +122,39 @@ for(var resource in list){
 	users[userId] = {};
 	var user = users[userId];
 	
-	user.ResourceID = userId;
-	user.givenName = resource.FirstName.getValue();
-	user.sn = resource.Surname.getValue();
-	user.SSN = resource.SocialSecurityNumber.getValue();
+	user.resourceId = userId;
+	user.FirstName = resource.FirstName.getValue();
+	user.Surname = resource.Surname.getValue();
+	user.SocialSecurityNumber = resource.SocialSecurityNumber.getValue();
+	orglist = resource.Employments.getChildNodes();
 	
-	// Now to get some of the most recent Employment data
+	
+	// Now to get Title
+	var cnt = 0;
 	var empList = resource.getElementsByTagName("Employment");
 	for (var emp in empList) {
 		if (emp.MainPosition.getValue() != "true" || // only the main position
-			emp.DateTo.getValue() < user.DateTo) {   // and the latest one (all users have one Main, as far as I could see) 
+			emp.DateTo.getValue() < user.DateTo) {   // and the latest one (is this correct? 
+			continue;
+		}
+	}
+	
+	if (cnt < 2) continue;
+	log.msg(userInfo(user, " -> " + cnt));
+	continue;
+	
+	
+	for (emp in empList) {
+		if (emp.MainPosition.getValue() != "true") {
 			continue;
 		}
 		user.Title = emp.PostCodeDescription.getValue();
 		user.Type = emp.EmploymentType.getValue();
-		user.Active = isActive(user);
 		user.Percentage = emp.Percentage.getValue();
 		user.EmpResourceId = emp.@ResourceId.getValue();
 		user.PostIdDescription = emp.PostIdDescription.getValue();
 		user.MainPos = emp.MainPosition.getValue();
-		user.DateTo = emp.dateTo.getValue();
-
-		// Get Ansvar
-		var relList = emp.Relations.getChildNodes();
-		var lastToDate = "";
-		for (var rel in relList) {
-			if (rel.@Name != "Ansvar" || 
-				(rel.ToDate && rel.ToDate.getValue() < lastToDate)) {
-				continue;
-			}
-			if (rel.ToDate) lastToDate = rel.ToDate.getValue();
-			user.Ansvar = rel.Value.getValue();
-			user.OtherPostIDs = rel.Description.getValue();
-		}
 	}
-	
-	// Now for OtherPostIDs
-	var otherPostIDs = [];
-	for (emp in empList) {
-		var postID = "";
-		// Get Ansvar
-		var relList = emp.Relations.getChildNodes();
-		for (var rel in relList) {
-			if (rel.@Name == "Ansvar") {
-				postID = "Arbeidssted=" + rel.Value.getValue();
-			} else
-			if (rel.@Name == "Arbeidstid pr. uke") {
-				postID += "=" + (37.5/new java.lang.Double(rel.Value.getValue().replace(",",".")))*100 + "%";
-			}
-		}
-		otherPostIDs.push(postID + "=" + emp.PostIdDescription);
-	}
-	user.OtherPostIDs = otherPostIDs.join("=");
 
 	// Get email addresses
 	var addr = resource.getElementsByTagName("Address");
@@ -201,14 +185,15 @@ for(var resource in list){
 }]]></parameter>
             </Script>
             <Script name="Set more manager info">
-                <ModTime>1643203740661</ModTime>
+                <ModTime>1643200014326</ModTime>
+                <parameter name="enabled">false</parameter>
                 <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
 	var mgr = users[user.ManagerId];
 	
 	if (typeof mgr == "undefined") {
-//		log.error("************ Undefined manager (" + user.ManagerId 
-//			+ ") for user " + userInfo(user));
+		log.error("************ Undefined manager (" + user.ManagerId 
+			+ ") for user " + userInfo(user));
 		continue;
 	}
 	user.ManagerName = mgr.FirstName + " " + mgr.Surname;
@@ -216,11 +201,11 @@ for(var resource in list){
 }]]></parameter>
             </Script>
             <Script name="Map to AD">
-                <ModTime>1643367577415</ModTime>
+                <ModTime>1643200016666</ModTime>
+                <parameter name="enabled">false</parameter>
                 <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
-	if (user.resourceId != "58464") continue;
-	log.msg(entryStr(work.fromJSON(toJson(user))));
+	log.msg(work.fromJSON(toJson(user)));
 }]]></parameter>
             </Script>
         </ContainerDF>

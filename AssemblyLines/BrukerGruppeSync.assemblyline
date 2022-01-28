@@ -1,13 +1,15 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="43" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Tue Jan 25 13:02:21 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="102" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Fri Jan 28 13:24:57 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
     <AssemblyLine name="BrukerGruppeSync">
-        <ModTime>1643112140960</ModTime>
+        <ModTime>1643372697130</ModTime>
         <Settings>
             <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
             <parameter name="automapattributes">false</parameter>
             <parameter name="createTombstones">false</parameter>
             <parameter name="includeGlobalPrologs">true</parameter>
             <parameter name="includePrologs"><![CDATA[Logger
-Mapper]]></parameter>
+Mapper
+ScriptLib
+]]></parameter>
             <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
         </Settings>
         <Hooks>
@@ -29,20 +31,20 @@ Mapper]]></parameter>
         <LogConfig/>
         <ContainerEF name="EntryFeedContainer"/>
         <ContainerDF name="DataFlowContainer">
-            <ModTime>1643112140960</ModTime>
+            <ModTime>1643372697130</ModTime>
             <Script name="Read in map">
                 <ModTime>1643112140960</ModTime>
                 <parameter name="script">var map = new Mapper("BrukerGruppeSync/mapping_resource.map");</parameter>
             </Script>
             <Connector name="Agresso Stamdata">
                 <InheritFrom>system:/Connectors/ibmdi.FileSystem</InheritFrom>
-                <ModTime>1643110038715</ModTime>
+                <ModTime>1643141783739</ModTime>
                 <ConnectorMode>Iterator</ConnectorMode>
                 <ConnectorState>Enabled</ConnectorState>
                 <Configuration>
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643110038715</ModTime>
-                    <parameter name="filePath">BrukerGruppeSync/Stamdata3_FSI_AL.xml</parameter>
+                    <ModTime>1643141783739</ModTime>
+                    <parameter name="filePath">_data/Stamdata3_FSI_AL.xml</parameter>
                 </Configuration>
                 <Parser>
                     <InheritFrom>system:/Parsers/ibmdi.XML2</InheritFrom>
@@ -89,8 +91,9 @@ Mapper]]></parameter>
                 <PoolInstance/>
             </Connector>
             <Script name="Read Organizations">
-                <ModTime>1642702098396</ModTime>
-                <parameter name="script"><![CDATA[var list = work.getElementsByTagName("Organisation");
+                <ModTime>1643201870935</ModTime>
+                <parameter name="script"><![CDATA[stamdata = work.clone();
+var list = stamdata.getElementsByTagName("Organisation");
 var orgs = {};
 for(var org in list){
 	var mgrs = org.Managers.getChildNodes();
@@ -104,32 +107,74 @@ for(var org in list){
 		id: org.Id.getValue(),
 		manager: mgr,
 		name: org.Name.getValue(),
-		companycode: org.CompanyCode.getValue()
+		companycode: org.CompanyCode.getValue(),
+		status: org.Status.getValue()
 	} 
 
 
 }]]></parameter>
             </Script>
             <Script name="Process Users">
-                <ModTime>1643110590388</ModTime>
-                <parameter name="script"><![CDATA[var list = work.getElementsByTagName("Resource");
+                <ModTime>1643372697130</ModTime>
+                <parameter name="script"><![CDATA[var list = stamdata.getElementsByTagName("Resource");
 var users = {};
 for(var resource in list){
 	var userId = resource.ResourceId.getValue();
 	users[userId] = {};
 	var user = users[userId];
 	
-	user.resourceId = userId;
-	user.FirstName = resource.FirstName.getValue();
-	user.Surname = resource.Surname.getValue();
-	user.SocialSecurityNumber = resource.SocialSecurityNumber.getValue();
-	orglist = resource.Employments.getChildNodes();
+	user.ResourceID = userId;
+	user.givenName = resource.FirstName.getValue();
+	user.sn = resource.Surname.getValue();
+	user.SSN = resource.SocialSecurityNumber.getValue();
 	
-	// Now to get Title
+	// Now to get some of the most recent Employment data
 	var empList = resource.getElementsByTagName("Employment");
-	if (empList.getLength() > 0) {
-		user.Title = empList[0].PostIdDescription.getValue();
+	for (var emp in empList) {
+		if (emp.MainPosition.getValue() != "true" || // only the main position
+			emp.DateTo.getValue() < user.DateTo) {   // and the latest one (all users have one Main, as far as I could see) 
+			continue;
+		}
+		user.Title = emp.PostCodeDescription.getValue();
+		user.Type = emp.EmploymentType.getValue();
+		user.Active = isActive(user);
+		user.Percentage = emp.Percentage.getValue();
+		user.EmpResourceId = emp.@ResourceId.getValue();
+		user.PostIdDescription = emp.PostIdDescription.getValue();
+		user.MainPos = emp.MainPosition.getValue();
+		user.DateTo = emp.dateTo.getValue();
+
+		// Get Ansvar
+		var relList = emp.Relations.getChildNodes();
+		var lastToDate = "";
+		for (var rel in relList) {
+			if (rel.@Name != "Ansvar" || 
+				(rel.ToDate && rel.ToDate.getValue() < lastToDate)) {
+				continue;
+			}
+			if (rel.ToDate) lastToDate = rel.ToDate.getValue();
+			user.Ansvar = rel.Value.getValue();
+			user.OtherPostIDs = rel.Description.getValue();
+		}
 	}
+	
+	// Now for OtherPostIDs
+	var otherPostIDs = [];
+	for (emp in empList) {
+		var postID = "";
+		// Get Ansvar
+		var relList = emp.Relations.getChildNodes();
+		for (var rel in relList) {
+			if (rel.@Name == "Ansvar") {
+				postID = "Arbeidssted=" + rel.Value.getValue();
+			} else
+			if (rel.@Name == "Arbeidstid pr. uke") {
+				postID += "=" + (37.5/new java.lang.Double(rel.Value.getValue().replace(",",".")))*100 + "%";
+			}
+		}
+		otherPostIDs.push(postID + "=" + emp.PostIdDescription);
+	}
+	user.OtherPostIDs = otherPostIDs.join("=");
 
 	// Get email addresses
 	var addr = resource.getElementsByTagName("Address");
@@ -144,6 +189,8 @@ for(var resource in list){
 		if (dept.@ElementType == "ORGANIZATIONAL_UNIT") {
 			user.DepartmentId = dept.Value.getValue();
 			user.DepartmentName = dept.Description.getValue();
+			user.FromDate = dept.DateFrom.getValue();
+			user.ToDate = dept.DateTo.getValue();
 		}
 	}
 	
@@ -151,32 +198,33 @@ for(var resource in list){
 	var org = orgs[user.DepartmentId];
 	if (typeof org == "undefined") {
 		log.error("************ Undefined org (" + user.departmentId 
-			+ ") for user " + user.FirstName + " " + user.Surname);
+			+ ") for user " + userInfo(user));
 	} else {
 		user.ManagerId = org.manager;
 	}
 }]]></parameter>
             </Script>
             <Script name="Set more manager info">
-                <ModTime>1643110577339</ModTime>
+                <ModTime>1643203740661</ModTime>
                 <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
 	var mgr = users[user.ManagerId];
 	
 	if (typeof mgr == "undefined") {
-		log.error("************ Undefined manager (" + user.ManagerId 
-			+ ") for user " + user.FirstName + " " + user.Surname);
+//		log.error("************ Undefined manager (" + user.ManagerId 
+//			+ ") for user " + userInfo(user));
 		continue;
 	}
-	user.ManagerName = mgr.FullName + " " + mgr.Surname;
+	user.ManagerName = mgr.FirstName + " " + mgr.Surname;
 	user.ManagerEmail = mgr.Mail;	
 }]]></parameter>
             </Script>
             <Script name="Map to AD">
-                <ModTime>1643110565264</ModTime>
+                <ModTime>1643367577415</ModTime>
                 <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
-	log.msg(work.fromJSON(toJson(user)));
+	if (user.resourceId != "58464") continue;
+	log.msg(entryStr(work.fromJSON(toJson(user))));
 }]]></parameter>
             </Script>
         </ContainerDF>
