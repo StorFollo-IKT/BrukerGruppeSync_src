@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="18" UUID="c75ebdf8-2ebe-49ef-8196-5d7e6a3f56ec" created="Tue Jan 25 12:25:42 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Mon Jan 31 11:21:44 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="34" UUID="c75ebdf8-2ebe-49ef-8196-5d7e6a3f56ec" created="Tue Jan 25 12:25:42 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Mon Jan 31 12:08:04 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
     <Container name="BrukerGruppeSync">
-        <ModTime>1643624502237</ModTime>
+        <ModTime>1643626365465</ModTime>
         <Container name="Data">
-            <ModTime>1643624502237</ModTime>
+            <ModTime>1643626365465</ModTime>
             <ParameterList name="ad.password">
                 <parameter name="Property">true</parameter>
                 <parameter name="Protect">true</parameter>
@@ -32,38 +32,38 @@
             <ParameterList name="smtp.hostname">
                 <parameter name="Property">true</parameter>
                 <parameter name="serverName">smtp.hostname</parameter>
-                <parameter name="serverValue">smtp-mail.outlook.com</parameter>
-                <parameter name="value">smtp-mail.outlook.com</parameter>
+                <parameter name="serverValue">smtp.gmail.com</parameter>
+                <parameter name="value">smtp.gmail.com</parameter>
             </ParameterList>
             <ParameterList name="smtp.password">
                 <parameter name="Property">true</parameter>
                 <parameter name="Protect">true</parameter>
                 <parameter name="serverName">smtp.password</parameter>
                 <parameter name="serverProtect">true</parameter>
-                <parameter name="serverValue">Mirakami23a!</parameter>
-                <parameter name="value">Mirakami23a!</parameter>
+                <parameter name="serverValue">{encr}AqernbavKA2nxiIXjXR0gFVOmwDzpHGcNBmC5vylC3hP8F4sjFyKvDqU6ZC39jKS2rpo87oMxL0BdQfRSjIpYf/zpBMRlkCoW8r+tt2dYx7RB860E1u0xd+/GzlmnyxPhjLpi3TbHxJMuLU1FREtWcPbyxvbwrxtbi4me25lAgY=</parameter>
+                <parameter name="value">{encr}AqernbavKA2nxiIXjXR0gFVOmwDzpHGcNBmC5vylC3hP8F4sjFyKvDqU6ZC39jKS2rpo87oMxL0BdQfRSjIpYf/zpBMRlkCoW8r+tt2dYx7RB860E1u0xd+/GzlmnyxPhjLpi3TbHxJMuLU1FREtWcPbyxvbwrxtbi4me25lAgY=</parameter>
             </ParameterList>
             <ParameterList name="smtp.port">
                 <parameter name="Property">true</parameter>
                 <parameter name="Protect">false</parameter>
                 <parameter name="serverName">smtp.port</parameter>
                 <parameter name="serverProtect">false</parameter>
-                <parameter name="serverValue">587</parameter>
-                <parameter name="value">587</parameter>
+                <parameter name="serverValue">465</parameter>
+                <parameter name="value">465</parameter>
             </ParameterList>
             <ParameterList name="smtp.ssl">
                 <parameter name="Property">true</parameter>
                 <parameter name="Protect">false</parameter>
                 <parameter name="serverName">smtp.ssl</parameter>
                 <parameter name="serverProtect">false</parameter>
-                <parameter name="serverValue">false</parameter>
-                <parameter name="value">false</parameter>
+                <parameter name="serverValue">true</parameter>
+                <parameter name="value">true</parameter>
             </ParameterList>
             <ParameterList name="smtp.username">
                 <parameter name="Property">true</parameter>
                 <parameter name="serverName">smtp.username</parameter>
-                <parameter name="serverValue">eddie.hartman@storfolloikt.no</parameter>
-                <parameter name="value">eddie.hartman@storfolloikt.no</parameter>
+                <parameter name="serverValue">eddiehartman@gmail.com</parameter>
+                <parameter name="value">eddiehartman@gmail.com</parameter>
             </ParameterList>
             <ParameterList name="user.type.active">
                 <parameter name="Property">true</parameter>
@@ -73,7 +73,9 @@
             </ParameterList>
             <ParameterList name="user.type.inactive">
                 <parameter name="Property">true</parameter>
+                <parameter name="Protect">false</parameter>
                 <parameter name="serverName">user.type.inactive</parameter>
+                <parameter name="serverProtect">false</parameter>
                 <parameter name="serverValue">HIVYZ</parameter>
                 <parameter name="value">HIVYZ</parameter>
             </ParameterList>

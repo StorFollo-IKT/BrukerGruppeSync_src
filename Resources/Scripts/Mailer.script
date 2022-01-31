@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="2" UUID="ea6e7d4e-2ca1-4d50-8d49-0fa1c5a30247" created="Mon Jan 31 09:26:53 CET 2022" createdBy="Eddie Hartman" main="Mailer" modified="Mon Jan 31 09:28:21 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="5" UUID="ea6e7d4e-2ca1-4d50-8d49-0fa1c5a30247" created="Mon Jan 31 09:26:53 CET 2022" createdBy="Eddie Hartman" main="Mailer" modified="Mon Jan 31 12:08:01 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
     <Script name="Mailer">
-        <ModTime>1643617700336</ModTime>
+        <ModTime>1643627280385</ModTime>
         <parameter name="includeFiles"/>
         <parameter name="script"><![CDATA[// Mailer is used to send emails
 //
@@ -34,7 +34,11 @@ var Mailer = function(args) {
 	this.send = function(args) {
 		var toAddress = args.toAddress || args.to || "* NOT SPECIFIED *";
 		if (!(toAddress instanceof Array)) {
-			toAddress = [toAddress];
+			if (toAddress.indexOf(";")) {
+				toAddress = system.splitString(toAddress, ";");
+			} else {
+				toAddress = [toAddress];
+			}	
 		}
 		var fromAddress = args.fromAddress || args.from || "* NOT SPECIFIED *";
 		var subject = args.subject || "* NOT SPECIFIED *";
@@ -68,7 +72,7 @@ var Mailer = function(args) {
 		    message.setFrom(new javax.mail.internet.InternetAddress(fromAddress));
 		    // Set To: header field of the header.
 		    for (var i = 0; i < toAddress.length; i++) {
-			    message.addRecipient(javax.mail.Message.RecipientType.TO, new javax.mail.internet.InternetAddress(toAddress[i]));
+			    message.addRecipient(javax.mail.Message.RecipientType.TO, new javax.mail.internet.InternetAddress(toAddress[i].trim()));
 		    }
 		    // Set Subject: header field
 		    message.setSubject(subject);
