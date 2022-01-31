@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="22" UUID="a107c3b8-197c-4c0d-9c77-4b45ffbc379c" created="Mon Jan 31 10:12:06 CET 2022" createdBy="Eddie Hartman" main="TestMail" modified="Mon Jan 31 11:17:47 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <AssemblyLine name="TestMail">
+        <ModTime>1643624266867</ModTime>
+        <Settings>
+            <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
+            <parameter name="automapattributes">false</parameter>
+            <parameter name="createTombstones">false</parameter>
+            <parameter name="includeGlobalPrologs">true</parameter>
+            <parameter name="includePrologs"><![CDATA[Logger
+ScriptLib
+Mailer]]></parameter>
+            <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
+        </Settings>
+        <Hooks/>
+        <CheckpointConfig/>
+        <SandboxConfig/>
+        <SimulationConfig>
+            <SimulationStates>
+                <Component name="Test" state="Enabled"/>
+            </SimulationStates>
+            <ProxySettings/>
+        </SimulationConfig>
+        <LogConfig/>
+        <ContainerEF name="EntryFeedContainer"/>
+        <ContainerDF name="DataFlowContainer">
+            <ModTime>1643624266867</ModTime>
+            <Script name="Test">
+                <ModTime>1643624266867</ModTime>
+                <parameter name="script"><![CDATA[var args = {
+	hostname: getProperty("smtp.hostname"),
+	port: getPropertyInt("smtp.port"),
+	ssl: getPropertyBoolean("smtp.ssl"),
+	username: getProperty("smtp.username"),
+	password: getProperty("smtp.password")
+}
+//log.msg("Using args: " + toJson(args));
+mail = new Mailer(args);
+
+mail.send({
+	to: "eddie.hartman@storfolloikt.no",
+	from: "tdi@storfolloikt.no",
+	subject: "Test Email",
+	body: "<html><head><b>Test Mail</b></head><body><p>This is a test</p></body></html>",
+	contentType: "text/html",
+	attachments: "solution.properties"
+})]]></parameter>
+            </Script>
+        </ContainerDF>
+        <ThreadOptions/>
+        <Operations/>
+        <InitParams>
+            <Schema name="AssemblyLineInitParams"/>
+        </InitParams>
+    </AssemblyLine>
+</MetamergeConfig>

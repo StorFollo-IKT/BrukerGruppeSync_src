@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="142" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Mon Jan 31 09:53:54 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="124" UUID="cb97b1a1-d752-441e-83e0-b91107ce34f6" created="Thu Jan 20 18:45:54 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Fri Jan 28 23:22:52 CET 2022" modifiedBy="Eddie Hartman" project="_test" version="7.1.1">
     <AssemblyLine name="BrukerGruppeSync">
-        <ModTime>1643619234274</ModTime>
+        <ModTime>1643408572123</ModTime>
         <Settings>
             <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
             <parameter name="automapattributes">false</parameter>
             <parameter name="createTombstones">false</parameter>
             <parameter name="includeGlobalPrologs">true</parameter>
             <parameter name="includePrologs"><![CDATA[Logger
-Mailer
+Mapper
 ScriptLib
 ]]></parameter>
             <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
@@ -24,15 +24,14 @@ ScriptLib
                 <Component name="Read Organizations" state="Enabled"/>
                 <Component name="Process Users" state="Enabled"/>
                 <Component name="Set manager and group" state="Enabled"/>
-                <Component name="Display" state="Enabled"/>
-                <Component name="Write to AD" state="Enabled"/>
+                <Component name="Map to AD" state="Enabled"/>
             </SimulationStates>
             <ProxySettings/>
         </SimulationConfig>
         <LogConfig/>
         <ContainerEF name="EntryFeedContainer"/>
         <ContainerDF name="DataFlowContainer">
-            <ModTime>1643619234274</ModTime>
+            <ModTime>1643408572123</ModTime>
             <Script name="Read Group file">
                 <ModTime>1643407136254</ModTime>
                 <parameter name="script"><![CDATA[groupFile = system.getConnector("GroupFile");
@@ -129,11 +128,9 @@ for(var org in list){
 }]]></parameter>
             </Script>
             <Script name="Process Users">
-                <ModTime>1643619211186</ModTime>
-                <parameter name="script"><![CDATA[// Get all Resource elements from the input XML
-var list = stamdata.getElementsByTagName("Resource");
-var userCnt = 0;
-var users = {}; // For collecting all users
+                <ModTime>1643408554871</ModTime>
+                <parameter name="script"><![CDATA[var list = stamdata.getElementsByTagName("Resource");
+var users = {};
 for(var resource in list){
 	var userId = resource.ResourceId.getValue();
 	users[userId] = {};
@@ -144,29 +141,15 @@ for(var resource in list){
 	user.sn = resource.Surname.getValue();
 	user.SSN = resource.SocialSecurityNumber.getValue();
 	
-	// Now to gather Employment data
-	var otherPostIDs = [];
+	// Now to get some of the most recent Employment data
 	var empList = resource.getElementsByTagName("Employment");
 	for (var emp in empList) {
-		// Collect OtherPostIDs
-		var postID = "";
-		// Get Ansvar
-		var relList = emp.Relations.getChildNodes();
-		for (var rel in relList) {
-			if (rel.@Name == "Ansvar") {
-				postID = "Arbeidssted=" + rel.Value.getValue();
-				postID += "=" + user.Percentage + "%";
-				otherPostIDs.push(postID + "=" + emp.PostIdDescription);
-			}
-		}
-		
-		// Only continue with latest main employment
 		if (emp.MainPosition.getValue() != "true" || // only the main position
 			emp.DateTo.getValue() < user.DateTo) {   // and the latest one (all users have one Main, as far as I could see) 
 			continue;
 		}
 		user.Title = emp.PostCodeDescription.getValue();
-		user.Type = emp.EmploymentType.getValue().toUpperCase();
+		user.Type = emp.EmploymentType.getValue();
 		user.Active = isActive(user);
 		user.Percentage = emp.Percentage.getValue();
 		user.EmpResourceId = emp.@ResourceId.getValue();
@@ -198,6 +181,20 @@ for(var resource in list){
 		}
 	}
 	
+	// Now for OtherPostIDs
+	var otherPostIDs = [];
+	for (emp in empList) {
+		var postID = "";
+		// Get Ansvar
+		var relList = emp.Relations.getChildNodes();
+		for (var rel in relList) {
+			if (rel.@Name == "Ansvar") {
+				postID = "Arbeidssted=" + rel.Value.getValue();
+				postID += "=" + user.Percentage + "%";
+				otherPostIDs.push(postID + "=" + emp.PostIdDescription);
+			}
+		}
+	}
 	user.OtherPostIDs = otherPostIDs.join("=") + "=";
 
 	// Get email addresses
@@ -215,16 +212,11 @@ for(var resource in list){
 	} else {
 		user.ManagerId = org.manager;
 	}
-	
-	userCnt++;
-}
-
-log.msg("Users read: " + userCnt);]]></parameter>
+}]]></parameter>
             </Script>
             <Script name="Set manager and group">
-                <ModTime>1643618701543</ModTime>
-                <parameter name="script"><![CDATA[// We can get manager data now after having processed all users in the previous step
-for (var userId in users) {
+                <ModTime>1643407124305</ModTime>
+                <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
 	var mgr = users[user.ManagerId];
 	
@@ -244,18 +236,13 @@ for (var userId in users) {
 	user.Groups = groupLine;
 }]]></parameter>
             </Script>
-            <Script name="Display">
-                <ModTime>1643619234274</ModTime>
+            <Script name="Map to AD">
+                <ModTime>1643408572123</ModTime>
                 <parameter name="script"><![CDATA[for (var userId in users) {
 	var user = users[userId];
 	if (user.ResourceID != "58464") continue;
-	log.msg("\n---------" + entryStr(work.fromJSON(toJson(user))));
+	log.msg(entryStr(work.fromJSON(toJson(user))));
 }]]></parameter>
-            </Script>
-            <Script name="Write to AD">
-                <ModTime>1643618847844</ModTime>
-                <parameter name="script"><![CDATA[ad = system.getConnector("ActiveDirectory");
-ad.initialize(true);]]></parameter>
             </Script>
         </ContainerDF>
         <ThreadOptions/>

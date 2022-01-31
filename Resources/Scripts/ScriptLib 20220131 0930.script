@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="30" UUID="91a7c201-fa4d-4b8a-9321-5c06f56209d5" created="Wed Jan 26 13:00:45 CET 2022" createdBy="Eddie Hartman" main="ScriptLib" modified="Mon Jan 31 11:16:48 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="18" UUID="91a7c201-fa4d-4b8a-9321-5c06f56209d5" created="Wed Jan 26 13:00:45 CET 2022" createdBy="Eddie Hartman" main="ScriptLib" modified="Wed Jan 26 21:17:31 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
     <Script name="ScriptLib">
-        <ModTime>1643624207687</ModTime>
+        <ModTime>1643228250929</ModTime>
         <parameter name="includeFiles"/>
         <parameter name="script"><![CDATA[// Must include AFTER Logger in an AL!!
 
@@ -26,27 +26,21 @@ function entryStr(entry) {
 	return str;
 }
 
-function getProperty(propName) {
-	return system.getTDIProperty(propName);
-}
-
-function getPropertyInt(propName) {
-	var prop = system.getTDIProperty(propName);
-	return system.toInt(prop);
-}
-
-function getPropertyBoolean(propName) {
-	return (system.getTDIProperty(propName) || "").toLowerCase() != "false";
-}
-
 _TYPE_CODES = null;
 function isActive(user) {
 	if (!_TYPE_CODES) {
 		// Read in the ActiveTypes.txt file and set the two global variables above
-		_TYPE_CODES = {
-			active: (getProperty("user.type.active") || "").toUpperCase(),
-			inactive: (getProperty("user.type.inactive") || "").toUpperCase()
-		};
+		_TYPE_CODES = {};
+		var typesFile = system.getConnector("ActiveTypes");
+		typesFile.initialize(null);
+		typesFile.selectEntries();
+		var e = null;
+		while ((e = typesFile.getNextEntry()) != null) {
+			var parts = system.splitString(e.getString("line").trim(), ":");
+			if (parts.length == 2)
+			_TYPE_CODES[parts[0].toLowerCase()] = parts[1];
+		}
+		typesFile.terminate();
 	}
 	
 	if (_TYPE_CODES.active.indexOf(user.Type) >= 0) {

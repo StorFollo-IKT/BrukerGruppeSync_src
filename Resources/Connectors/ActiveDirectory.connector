@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="4" UUID="0481e2d8-7cc6-47f2-a6d9-1cdd1d2cc9ae" created="Mon Jan 31 09:47:01 CET 2022" createdBy="Eddie Hartman" main="ActiveDirectory" modified="Mon Jan 31 09:51:32 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <Connector name="ActiveDirectory">
+        <InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+        <ModTime>1643619091651</ModTime>
+        <ConnectorMode>Update</ConnectorMode>
+        <ConnectorState>Enabled</ConnectorState>
+        <Configuration>
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643619091651</ModTime>
+            <parameter name="ldapPassword">@SUBSTITUTE{property.BrukerGruppeSync:ad.password}</parameter>
+            <parameter name="ldapUrl">@SUBSTITUTEldap://{property.BrukerGruppeSync:ad.url}:{property.BrukerGruppeSync:ad.port}</parameter>
+            <parameter name="ldapUsername">@SUBSTITUTE{property.BrukerGruppeSync:ad.username}</parameter>
+        </Configuration>
+        <Parser>
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618810241</ModTime>
+        </Parser>
+        <AttributeMap name="Input">
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618810241</ModTime>
+        </AttributeMap>
+        <AttributeMap name="Output">
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618810241</ModTime>
+        </AttributeMap>
+        <DeltaSettings/>
+        <Schema name="Input">
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618810241</ModTime>
+        </Schema>
+        <Schema name="Output">
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618810241</ModTime>
+        </Schema>
+        <LinkCriteria>
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618810241</ModTime>
+        </LinkCriteria>
+        <Hooks>
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618810241</ModTime>
+        </Hooks>
+        <CheckpointConfig/>
+        <SandboxConfig/>
+        <Reconnect>
+            <InheritFrom>[parent]</InheritFrom>
+            <ReconnectRules/>
+        </Reconnect>
+        <Operations/>
+        <PoolDefinition>
+            <InheritFrom>[parent]</InheritFrom>
+            <ModTime>1643618822165</ModTime>
+            <Enabled>false</Enabled>
+            <MinPoolSize>0</MinPoolSize>
+            <MaxPoolSize>0</MaxPoolSize>
+            <PurgeInterval>0</PurgeInterval>
+            <InitializeAttempts>1</InitializeAttempts>
+            <InitializeSleepInterval>0</InitializeSleepInterval>
+        </PoolDefinition>
+        <PoolInstance/>
+    </Connector>
+</MetamergeConfig>
