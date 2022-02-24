@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="150" UUID="f15eaa89-c513-4c6e-b8c9-6c2a463a6220" created="Mon Feb 07 14:28:31 CET 2022" createdBy="Eddie Hartman" main="_testSearch" modified="Fri Feb 18 09:59:09 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <AssemblyLine name="_testSearch">
+        <ModTime>1645174749329</ModTime>
+        <Settings>
+            <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
+            <parameter name="automapattributes">false</parameter>
+            <parameter name="createTombstones">false</parameter>
+            <parameter name="includeGlobalPrologs">true</parameter>
+            <parameter name="includePrologs"><![CDATA[FunctionLibrary
+DatasetObject]]></parameter>
+            <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
+        </Settings>
+        <Hooks/>
+        <CheckpointConfig/>
+        <SandboxConfig/>
+        <SimulationConfig>
+            <SimulationStates>
+                <Component name="StorFollo_Costs" state="Enabled"/>
+                <Component name="Set up Datasets" state="Enabled"/>
+                <Component name="ReadTables" state="Enabled"/>
+                <Component name="Debug" state="Enabled"/>
+            </SimulationStates>
+            <ProxySettings/>
+        </SimulationConfig>
+        <LogConfig/>
+        <ContainerEF name="EntryFeedContainer">
+            <ModTime>1644487430028</ModTime>
+        </ContainerEF>
+        <ContainerDF name="DataFlowContainer">
+            <ModTime>1645174749329</ModTime>
+            <Connector name="StorFollo_Costs">
+                <InheritFrom>/Connectors/StorFollo_Costs</InheritFrom>
+                <ModTime>1644561973976</ModTime>
+                <ConnectorMode>Iterator</ConnectorMode>
+                <ConnectorState>Passive</ConnectorState>
+                <Configuration>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487413198</ModTime>
+                </Configuration>
+                <Parser>
+                    <InheritFrom>[parent]</InheritFrom>
+                </Parser>
+                <AttributeMap name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487430028</ModTime>
+                    <AttributeMapItem>
+                        <Name>*</Name>
+                        <Type>simple</Type>
+                        <Simple>*</Simple>
+                    </AttributeMapItem>
+                </AttributeMap>
+                <AttributeMap name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </AttributeMap>
+                <DeltaSettings>
+                    <ModTime>1644240520981</ModTime>
+                    <WhenToCommit>After every database operation</WhenToCommit>
+                    <RowLocking>SERIALIZABLE</RowLocking>
+                    <ChangeDetectionMode>DETECT_ALL</ChangeDetectionMode>
+                </DeltaSettings>
+                <Schema name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <Schema name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <LinkCriteria>
+                    <InheritFrom>[parent]</InheritFrom>
+                </LinkCriteria>
+                <Hooks>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644561973976</ModTime>
+                    <Hook name="after_initialize">
+                        <InheritFrom>[no inheritance]</InheritFrom>
+                        <Name>after_initialize</Name>
+                        <Script>sf = thisConnector.connector;</Script>
+                        <Enabled>true</Enabled>
+                    </Hook>
+                </Hooks>
+                <CheckpointConfig/>
+                <SandboxConfig/>
+                <Reconnect>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ReconnectRules/>
+                </Reconnect>
+                <Operations/>
+                <PoolDefinition>
+                    <InheritFrom>[parent]</InheritFrom>
+                </PoolDefinition>
+                <PoolInstance/>
+            </Connector>
+            <Script name="Set up Datasets">
+                <InheritFrom>/Scripts/Set up Datasets</InheritFrom>
+                <ModTime>1645097493070</ModTime>
+            </Script>
+            <Script name="ReadTables">
+                <ModTime>1645012837233</ModTime>
+                <parameter name="enabled">false</parameter>
+                <parameter name="script"><![CDATA[var tables = sf.queryTables().toArray();
+var lookfor = [40, 360, "FKDMZSVWEB04"];
+
+java.util.Arrays.sort(tables);
+
+for (var table in tables) {
+	if (!table.startsWith("costs_")) continue;
+	
+	sf.execSQLSelect("select * from " + table);
+	while ((e = sf.getNextSQLSelectEntry()) != null) {
+		var names = e.getAttributeNames();
+		java.util.Arrays.sort(names);
+		for (var name in names) {
+			if (name.endsWith("id")) continue;
+			
+			var val = e.getString(name);
+			if (val == null) continue;
+			for (i = 0; i < lookfor.length; i++) {
+				lf = String(lookfor[i]);
+				if (lf.equalsIgnoreCase(val)) {
+					task.logmsg("--> " + table + "  " + name + ": " + val + " - " + e.toJSON());
+				}
+			}
+		}
+	}
+	if (e == null) continue;
+	//task.logmsg("\n------ " + table.toUpperCase() + " ------\n" + atts.join("\n"));
+}]]></parameter>
+            </Script>
+            <Script name="Debug">
+                <ModTime>1645174749329</ModTime>
+                <parameter name="script"><![CDATA[appName = "eDemokrati";
+
+log("====================== LOOKING FOR APP: " + appName);
+appArray = apps.findByField("name", appName);
+
+for (app in appArray) {
+	log("\n\n---------------- Found: " + work.fromJSON(toJson(app)));
+	
+	appServers = app_servers.findByField("application_id", app.id);
+	
+	for (appServer in appServers) {
+		map = new java.util.HashMap();
+
+		itemCnt = 0;
+		server = servers.get(appServer.server_id);
+		map.put((++itemCnt) + ". server", server);
+
+		allAppsWithServer = app_servers.get(server.id, "server_id");
+		server.num_apps_on_server = allAppsWithServer.length;
+		//map.put((++itemCnt) + ". allAppsWithServer", allAppsWithServer);
+		
+		//product = products.get(server.product_id);
+		//map.put((++itemCnt) + ". product", product);
+
+		product_group = product_groups.get(server.product_group_id);
+		map.put((++itemCnt) + ". product_group", product_group);
+		
+		// Now from product group to related products - hourly and other
+		server.hourly_cost = 0;
+		server.other_cost = 0;
+		prodGroupList = productgroup_products.get(product_group.id, "productgroup_id");
+		for (prodGroup in prodGroupList) {
+			product = products.get(prodGroup.product_id);
+			product_type = product_types.get(product.type_id);
+			if (product_type.type == "Arbeidstimer") {
+				server.hourly_cost += product.price;
+			} else {
+				server.other_cost += product.price;
+			}
+		}
+		server.other_cost = Math.round(server.other_cost / server.num_apps_on_server);
+		server.hourly_cost = Math.round(server.hourly_cost / server.num_apps_on_server);
+		
+		//map.put((++itemCnt) + ". productgroup_product", prodGroupList);
+		
+		/*
+		product_type = product_types.get(server.type_id);
+		map.put((++itemCnt) + ". product_type", product_type);
+		
+ * 		arr = product_delivery.findByField("product_id", product.id);
+		map.put((++itemCnt) + ". product_delivery", arr);
+
+  		productgroup_product = productgroup_products.get(product.id,"product_id");
+		map.put((++itemCnt) + ". productgroup_product", productgroup_product);
+		
+  		arr = accountings.findByField("project", app.identifier);
+		map.put((++itemCnt) + ". accounting", arr);
+		
+		invoice_serverdetail = invoice_serverdetails.get(server.id, "server_id");
+		//map.put((++itemCnt) + ". invoice_serverdetails", invoice_serverdetail);
+		det = new java.util.ArrayList();
+		for (inv_det in invoice_serverdetail) {
+			invoice_linedetail = invoice_linedetails.get(inv_det.detail_id);
+			invoice_line = invoice_lines.get(invoice_linedetail.invoice_line_id);
+			det.add(invoice_line);
+		}
+		map.put((++itemCnt) + ". invoice_line", det.toArray());
+		*/
+
+		/*
+		invoice_linedetail = invoice_linedetails.get(app.id, "application_id");
+		map.put((++itemCnt) + ". invoice_linedetail", invoice_linedetail);
+		
+		invoice_line = invoice_lines.get(invoice_linedetail.invoice_line_id);
+		map.put((++itemCnt) + ". invoice_line", invoice_line);
+		*/
+		// Now display everything
+		keys = map.keySet().toArray();
+		java.util.Arrays.sort(keys);
+		
+		for (key in keys) {
+			obj = map.get(key);
+			log("\n--------------------- " + key.toUpperCase() + " ----")
+			if ((typeof obj).startsWith("[")) {
+				cnt = 1;
+				for (item in obj) {
+					log("\n  -- item " + cnt++ + "--\n" + work.fromJSON(toJson(item)));
+				}		
+			} else {
+				log(work.fromJSON(toJson(obj)));
+			}
+		}
+	}
+}]]></parameter>
+            </Script>
+        </ContainerDF>
+        <ThreadOptions/>
+        <Operations/>
+        <InitParams>
+            <Schema name="AssemblyLineInitParams"/>
+        </InitParams>
+    </AssemblyLine>
+</MetamergeConfig>

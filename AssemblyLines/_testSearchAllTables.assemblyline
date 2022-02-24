@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="71" UUID="f15eaa89-c513-4c6e-b8c9-6c2a463a6220" created="Mon Feb 07 14:28:31 CET 2022" createdBy="Eddie Hartman" main="_testSearchAllTables" modified="Thu Feb 17 15:23:15 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <AssemblyLine name="_testSearchAllTables">
+        <ModTime>1645107794248</ModTime>
+        <Settings>
+            <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
+            <parameter name="automapattributes">false</parameter>
+            <parameter name="createTombstones">false</parameter>
+            <parameter name="includeGlobalPrologs">true</parameter>
+            <parameter name="includePrologs"><![CDATA[FunctionLibrary
+DatasetObject
+]]></parameter>
+            <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
+        </Settings>
+        <Hooks/>
+        <CheckpointConfig/>
+        <SandboxConfig/>
+        <SimulationConfig>
+            <SimulationStates>
+                <Component name="StorFollo_Costs" state="Enabled"/>
+                <Component name="Set up Datasets" state="Enabled"/>
+                <Component name="ReadTables" state="Enabled"/>
+            </SimulationStates>
+            <ProxySettings/>
+        </SimulationConfig>
+        <LogConfig/>
+        <ContainerEF name="EntryFeedContainer">
+            <ModTime>1644487430028</ModTime>
+        </ContainerEF>
+        <ContainerDF name="DataFlowContainer">
+            <ModTime>1645107794248</ModTime>
+            <Connector name="StorFollo_Costs">
+                <InheritFrom>/Connectors/StorFollo_Costs</InheritFrom>
+                <ModTime>1644561973976</ModTime>
+                <ConnectorMode>Iterator</ConnectorMode>
+                <ConnectorState>Passive</ConnectorState>
+                <Configuration>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487413198</ModTime>
+                </Configuration>
+                <Parser>
+                    <InheritFrom>[parent]</InheritFrom>
+                </Parser>
+                <AttributeMap name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487430028</ModTime>
+                    <AttributeMapItem>
+                        <Name>*</Name>
+                        <Type>simple</Type>
+                        <Simple>*</Simple>
+                    </AttributeMapItem>
+                </AttributeMap>
+                <AttributeMap name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </AttributeMap>
+                <DeltaSettings>
+                    <ModTime>1644240520981</ModTime>
+                    <WhenToCommit>After every database operation</WhenToCommit>
+                    <RowLocking>SERIALIZABLE</RowLocking>
+                    <ChangeDetectionMode>DETECT_ALL</ChangeDetectionMode>
+                </DeltaSettings>
+                <Schema name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <Schema name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <LinkCriteria>
+                    <InheritFrom>[parent]</InheritFrom>
+                </LinkCriteria>
+                <Hooks>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644561973976</ModTime>
+                    <Hook name="after_initialize">
+                        <InheritFrom>[no inheritance]</InheritFrom>
+                        <Name>after_initialize</Name>
+                        <Script>sf = thisConnector.connector;</Script>
+                        <Enabled>true</Enabled>
+                    </Hook>
+                </Hooks>
+                <CheckpointConfig/>
+                <SandboxConfig/>
+                <Reconnect>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ReconnectRules/>
+                </Reconnect>
+                <Operations/>
+                <PoolDefinition>
+                    <InheritFrom>[parent]</InheritFrom>
+                </PoolDefinition>
+                <PoolInstance/>
+            </Connector>
+            <Script name="Set up Datasets">
+                <ModTime>1644916874479</ModTime>
+                <parameter name="script"><![CDATA[apps = new Dataset(sf, "costs_application");
+sectors = new Dataset(sf, "costs_sector");
+servers = new Dataset(sf, "costs_server");
+app_servers = new Dataset(sf, "costs_application_servers");
+products = new Dataset(sf, "costs_product");
+product_delivery = new Dataset(sf, "costs_productdelivery");
+productgroup_products = new Dataset(sf, "COSTS_PRODUCTGROUP_PRODUCTS");]]></parameter>
+            </Script>
+            <Script name="ReadTables">
+                <ModTime>1645107794248</ModTime>
+                <parameter name="enabled">true</parameter>
+                <parameter name="script"><![CDATA[var tables = sf.queryTables().toArray();
+//var lookfor = [5, 72, 40, 360, "FKDMZSVWEB04"];
+var lookfor = ["Arbeidstimer"];
+
+java.util.Arrays.sort(tables);
+
+for (var table in tables) {
+	if (!table.startsWith("costs_")) continue;
+	
+	sf.execSQLSelect("select * from " + table);
+	while ((e = sf.getNextSQLSelectEntry()) != null) {
+		var names = e.getAttributeNames();
+		java.util.Arrays.sort(names);
+		for (var name in names) {
+			if (name.endsWith("id")) continue;
+			
+			var val = e.getString(name);
+			if (val == null) continue;
+			val = val.toLowerCase().trim();
+			for (i = 0; i < lookfor.length; i++) {
+				lf = String(lookfor[i]).toLowerCase().trim();
+				if (val == lf) {
+					task.logmsg("--> " + table + "  " + name + ": " + val + " - " + e.toJSON());
+				}
+			}
+		}
+	}
+	if (e == null) continue;
+	//task.logmsg("\n------ " + table.toUpperCase() + " ------\n" + atts.join("\n"));
+}]]></parameter>
+            </Script>
+        </ContainerDF>
+        <ThreadOptions/>
+        <Operations/>
+        <InitParams>
+            <Schema name="AssemblyLineInitParams"/>
+        </InitParams>
+    </AssemblyLine>
+</MetamergeConfig>

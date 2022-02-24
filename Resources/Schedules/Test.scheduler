@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="2" UUID="3a45d3c0-08a3-4b0e-b58f-8b53cdfcd992" created="Mon Jan 31 14:17:20 CET 2022" createdBy="Eddie Hartman" main="Test" modified="Mon Jan 31 14:19:13 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <Scheduler name="Test">
+        <ModTime>1643635065058</ModTime>
+        <parameter name="SchedulerType">0</parameter>
+        <parameter name="StartTimes">* * * * 0 0</parameter>
+    </Scheduler>
+</MetamergeConfig>

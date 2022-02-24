@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="2" UUID="492f9c87-3f87-4422-b1e9-865a50714413" created="Mon Jan 31 09:26:15 CET 2022" createdBy="Eddie Hartman" main="WordDoc" modified="Tue Feb 01 10:10:53 CET 2022" modifiedBy="Eddie Hartman" project="POC_MVP" version="7.1.1">
+    <Script name="WordDoc">
+        <ModTime>1643706651290</ModTime>
+        <parameter name="includeFiles"/>
+        <parameter name="script"><![CDATA[var WordDoc = function (filenameTemplate)
+{
+	this.vrs = "20220201 1010"; // First version
+
+	this.filenameTemplate = filenameTemplate;
+	this.map = new Mapper();
+	 
+	this.log = function(lvl, msg) {
+		if (typeof lvl == "undefined") {
+			msg = "";
+			lvl = "INFO";
+		} else
+		if (typeof msg == "undefined") {
+			msg = lvl;
+			lvl = "INFO";
+		}
+		 
+		log.msg(lvl, "[WordDoc] " + msg);
+	}
+	
+	// 
+	
+	// Generate a Word Doc based on a file template
+	this.generate = function(entry) {
+		// Get filename
+		filename = this.map.evaluate("Word doc filename", this.filenameTemplate, entry);
+		this.log("Generating Word doc: " + filename);
+		
+		//Blank Document
+		var document = new org.apache.poi.xwpf.usermodel.XWPFDocument();
+		  
+		//Write the Document in file system
+		//fos = new java.io.ByteArrayOutputStream();
+		fos = new java.io.FileOutputStream(new java.io.File("POC_MVP/" + filename));
+
+		// First create the Abstract
+		var paragraph = document.createParagraph();
+		var run = paragraph.createRun();
+		run.setBold(true);
+		run.setFontSize(12);
+		
+		var contents = entry.getString("contents");
+		var lines = system.splitString(contents, "\n");
+		
+		for (var line in lines) {
+			run.setText(line);
+			run.addBreak();
+		}
+
+		document.write(fos);
+		fos.close();
+		
+		if (fos instanceof java.io.ByteArrayOutputStream) {
+			return fos.toByteArray();
+		}
+	}
+	
+	this.initialize = function() {
+		this.log(" v" + this.vrs);
+	}	
+	
+	// Initialization code below here
+	
+	this.initialize();
+	
+	return this;
+}]]></parameter>
+    </Script>
+</MetamergeConfig>

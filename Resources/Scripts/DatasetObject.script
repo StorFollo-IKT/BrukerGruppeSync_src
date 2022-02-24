@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="30" UUID="dcc038fc-15ee-41cc-a616-c1f0107279f5" created="Wed Feb 16 13:02:02 CET 2022" createdBy="Eddie Hartman" main="DatasetObject" modified="Thu Feb 17 15:40:12 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <Script name="DatasetObject">
+        <ModTime>1645108811761</ModTime>
+        <parameter name="includeFiles"/>
+        <parameter name="script"><![CDATA[var Dataset = function(ctr, table) {
+	this.vrs = "2022020216 1309"; // Initial version
+	
+	this.ids = {};
+	this.table = table;
+	
+	// Log function
+	this.log = function(lvl, msg) {
+		if (typeof lvl == "undefined") {
+			lvl = "INFO";
+			msg = "";
+		} else
+		if (typeof msg == "undefined") {
+			msg = lvl;
+			lvl = "INFO";
+		}
+		
+		log(lvl, "[Dataset] " + msg);
+	}
+	
+	// Function to create this Dataset object
+	this.initialize = function() {
+		var cnt = 0;
+		var e;
+		var data = null;
+		
+		this.log(" v" + this.vrs);
+		
+		var stmt = "select * from " + table;
+		
+		task.logmsg("Executing " + stmt);
+		
+		try {
+			ctr.execSQLSelect(stmt);
+			while ((e = ctr.getNextSQLSelectEntry()) != null) {
+				data = fromJson(e.toJSON());
+				
+				this.ids = this.ids || {};
+				
+				var val = (e.getString("id") || "").trim();
+				if (!val) {
+					task.logmsg("ERROR", "No value for id found for " + e.toJSON());
+				} else {
+					if (this.ids[val]) {
+						this.log("ERROR", "Duplicate key (id: " + val
+										+ ") for " + e.toJSON()
+										+ "\n     - previous: " + toJson(this.ids[val]));
+					}
+					this.ids[val] = data;	
+				}
+				cnt++;
+			}
+		} catch (ex){
+			this.log("ERROR", "Error performing statment: " + stmt + " - " + ex);
+		}
+		task.logmsg("  -> found " + cnt + " objects");
+	}
+	
+	// Return the object (or array of objects) for a specific keyvalue. Can be an array of objects if foreignKey is specified, otherwise a single object
+	this.get = function(keyValue, foreignKey) {
+		// If no foreign key specified, then find a single item based on its keyValue
+		if (typeof foreignKey == "undefined") {
+			return this.ids[keyValue] || {name: "*undefined (" + this.table + " id=" + keyValue + ")*"}	
+		}
+		// Otherwise, return an array of objects based on the passed foreignKey
+		var list = new java.util.ArrayList();
+		keyValue = String(keyValue);
+		for (var oid in this.ids) {
+			var obj = this.ids[oid];
+			var val = String(obj[foreignKey] || "");
+			if (keyValue.equalsIgnoreCase(val)) {
+				list.add(obj);
+			}
+		}
+		
+		var returnArray = list.toArray();
+		if (returnArray.length == 1) {
+			return returnArray[0]
+		} else {
+			return returnArray;
+		}
+	}
+	
+	// Return an object with properties corresponding to arrays of objects with the same value in the argument 'field' (property)
+	this.byField = function(field) {
+		var result = {};
+		
+		for (var id in this.ids) {
+			var obj = this.ids[id];
+			var fieldVal = obj[field] || null;
+			if (fieldVal) {
+				result[fieldVal] = result[fieldVal] || new java.util.ArrayList();
+				result[fieldVal].add(obj);
+			}
+		}
+		
+		for (var item in result) {
+			result[item] = result[item].toArray();
+		}
+		
+		return result;
+	}
+	
+	// Returns an Array of objects with the same value of the passed 'field' argument
+	this.findByField = function(fieldName, fieldValue) {
+		var list = new java.util.ArrayList();
+		fieldValue = String(fieldValue || "").trim();
+		for (var id in this.ids) {
+			var obj = this.ids[id];
+			var objField = obj[fieldName];
+
+			if (!objField) continue;
+			
+			if (String(objField).trim().equalsIgnoreCase(fieldValue)) {
+				list.add(obj);
+			}
+		}
+		
+		return list.toArray();
+	}
+	
+	// Return array of fields
+	this.fields = function() {
+		var list = new java.util.ArrayList();
+		for (var id in this.ids) {
+			var obj = this.ids[id];
+			for (var propName in obj) {
+				list.add(propName);
+			}
+			return list.toArray();
+		}
+	}
+	
+	// Here comes initialization
+	
+	this.initialize();
+
+	return this;
+}]]></parameter>
+    </Script>
+</MetamergeConfig>

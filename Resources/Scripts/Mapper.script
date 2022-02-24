@@ -1,42 +1,213 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="6" UUID="5547c7a6-2b4a-4699-819e-34470e71b67e" created="Tue Jan 25 12:55:06 CET 2022" createdBy="Eddie Hartman" main="Mapper" modified="Wed Jan 26 20:40:57 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="3" UUID="4984c99e-8ba3-416c-b1a4-0cf3e94405b6" created="Mon Jan 31 09:26:16 CET 2022" createdBy="Eddie Hartman" main="Mapper" modified="Tue Feb 01 10:21:10 CET 2022" modifiedBy="Eddie Hartman" project="POC_MVP" version="7.1.1">
     <Script name="Mapper">
-        <ModTime>1643226056614</ModTime>
+        <ModTime>1643707269916</ModTime>
         <parameter name="includeFiles"/>
-        <parameter name="script"><![CDATA[// Must load Logger before this script!!
+        <parameter name="script"><![CDATA[var Mapper = function (filePath)
+{
+	this.vrs = "20220201 1021"; // First version
 
-_VRS = "20220125 1255"; // Initial version
-
-var Mapper = function(mappingFileName) {
-	this.mappingFileName = mappingFileName || null;
-	this.map = {};
+	this.filePath = filePath || "";
+	this.rules = [];
 	
-	// Initialization method - prints out version
-	this.init = function() {
-		log.msg("Mapper v" + _VRS);
-		
-		this.readInMappingFile();
-	}
-	
-	// Reads in the mapping file
-	this.readInMappingFile = function() {
-		if (this.mappingFileName == null) {
-			throw "No mapping file specified in constructor to Mapper";
+	this.log = function(lvl, msg) {
+		if (typeof lvl == "undefined") {
+			msg = "";
+			lvl = "INFO";
+		} else
+		if (typeof msg == "undefined") {
+			msg = lvl;
+			lvl = "INFO";
 		}
 		
-		//Read mapping file
-		var file = system.openFileForInput(this.mappingFileName);
-		this.map = {};
-		while((line = file.readLine()) != null) {
-			var parts = line.split("=");
-			if (parts.length == 2) {
-				this.map[parts[0].trim()] = parts[1].trim();
+		log.msg(lvl, "[Mapper] " + msg);
+	}
+	
+	this.initialize = function() {
+		this.log(" v" + this.vrs);
+		
+		if (this.filePath != "") {
+			var rulesArray = loadFileToArray(filePath);
+			var rules = java.util.ArrayList();
+			
+			// Now to correct for multi-line mapping scripts
+
+			var ruleIndex = 0;			
+			while (ruleIndex < rulesArray.length) {
+				var rule = rulesArray[ruleIndex++];
+				// If this line continues, then read the next one
+				while (rule.endsWith("\\") && ruleIndex < rulesArray.length) {
+					rule = rule.substring(0, rule.length-1) + "\n" + rulesArray[ruleIndex++];
+				}
+				rules.add(rule);
+			}			
+			
+			this.rules = rules.toArray();
+		}
+	}
+	
+	// Local eval function that limits access to privileged script beans (like main and session)
+	this.eval = function(evalStr, entry) {
+		//this.prepareGlobalState();
+		var exceptn = null;
+		try {
+			var result = eval(evalStr);
+			return result;
+		} catch (ex) {
+			exceptn = ex;
+		} finally {
+			//this.restoreGlobalState();
+		}
+		
+		if (exceptn != null) {
+			throw exceptn;
+		}
+	}
+
+	
+	this.evaluateItem = function(attrName, evalStr, entryOrArray) {
+		var entries = entryOrArray;
+		if (entryOrArray instanceof com.ibm.di.entry.Entry) {
+			entries = [entryOrArray];
+		}
+		
+		var evalError = "";
+		//check if it's an attribute in the entry
+		for (i = 0; i < entries.length; i++) {
+			var entry = entries[i];
+			if (entry == null) {
+				//log("WARN", "Entry #" + i + " passed to map() is null");
+				continue;
+			} else
+			if (entry && entry[evalStr]) {
+				return entry[evalStr]; // TODO does this handle multi-values now?
+			} else {
+				try {
+					evalValue = this.eval(evalStr, entry);
+				} catch (e) {
+					evalValue = null;
+				}
+	
+				if (evalValue != null) {
+					return evalValue;
+				} else {
+					// We only want to return null at this point IF we have checked all entries in the array
+					if (i >= entries.length) {
+						return null;				
+					}
+	/*
+						this.addMappingError("evaluateItem(" + evalStr + ") for "
+												+ attrName
+												+ " returned null. " 
+												+ evalError, 
+											 entry.getString(srcUniqueId));
+	*/										 
+				}
 			}
 		}
-		file.close();
 	}
+
+
+	this.evaluate = function(attrName, rule, entryOrArray) {
+		var elem = [];
+		var eval = false;
+		var evalStr;
+		var bracketDepth = 0;
+		var rule = rule.replaceAll("\n", "_NEWLINE_");
+		var st = new java.util.StringTokenizer(rule, "{}", true);
+		var bracketDepth = 0;
+		while (st.hasMoreTokens()) {
+			var token = st.nextToken();
+			if (token == "{") {
+				if (bracketDepth++ == 0) {
+					eval = true;
+					evalStr = "";
+				} else {
+					evalStr += "{";
+				}
+			} else if (token == "}") {
+				if (--bracketDepth == 0) {
+					eval = false;
+					var evalValue = this.evaluateItem(attrName, evalStr, entryOrArray);
+					if (typeof evalValue != "undefined" && evalValue != null) {
+						elem.push(evalValue);
+					}
+				} else {
+					evalStr += "}";
+				}
+			} else if (eval) {
+				evalStr += token;
+			} else {
+				elem.push(token);
+			}
+		}
+
+		if (bracketDepth > 0) {
+			var errmsg = "Assignment of " 
+							+ attrName 
+							+ " is missing a closing curly brace: " 
+							+ rule;
+			this.log("ERROR", errmsg);
+			throw errmsg;
+		}
+
+		if (elem.length == 1) {
+			var item = elem[0];
+			if (typeof item == "string") {
+				return item.replaceAll("_NEWLINE_", "\n");
+			} else {
+				return item;
+			}
+		} else 
+		if (elem.length == 0) {
+			return null;
+		} else {
+			return elem.join("").replaceAll("_NEWLINE_", "\n");
+		}
+	}
+
+	this.map = function(entryOrArray, useRule) {
+		var entries = entryOrArray;
+		if (entryOrArray instanceof com.ibm.di.entry.Entry) {
+			entries = [entryOrArray];
+		}
+		
+		// First check if useRule is passed, in which case simply return this mapping result
+		if (typeof useRule != "undefined") {
+			var rule = useRule;
+			var p = rule.indexOf("=");
+			if (p < 0) { continue; }
+			
+			var name = rule.substring(0, p).trim();
+			rule = rule.substring(p+1);
+			
+			return {name: name, value: this.evaluate(name, rule, entryOrArray)};
+		}
+		
+		// Otherwise apply rules to map the entire entryOrArray, returning a mappedEntry
+		var mappedEntry = system.newEntry();
+		
+		for (var i = 0; i < this.rules.length; i++) {
+			var rule = String(this.rules[i]).trim();
+			var p = rule.indexOf("=");
+			if (p < 0) { continue; }
+			
+			var name = rule.substring(0, p);
+			rule = rule.substring(p+1);
+			
+			var evalValue = this.evaluate(name, rule, entryOrArray);
+			if (evalValue != null) {
+				mappedEntry[name] = evalValue;
+			}
+		}
+		
+		return mappedEntry;
+	}
+
+	// Initialization code below here
+
+	this.initialize();
 	
-	// Init code
-	this.init();
+	return this;
 }]]></parameter>
     </Script>
 </MetamergeConfig>

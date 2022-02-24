@@ -1,12 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="6" UUID="23de724f-b99c-454c-907b-d808784fc6c2" created="Wed Jan 26 20:25:57 CET 2022" createdBy="Eddie Hartman" main="ReadResultFile" modified="Mon Jan 31 14:58:41 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
-    <AssemblyLine name="ReadResultFile">
-        <ModTime>1643634389417</ModTime>
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="51" UUID="f15eaa89-c513-4c6e-b8c9-6c2a463a6220" created="Mon Feb 07 14:28:31 CET 2022" createdBy="Eddie Hartman" main="_testReadAllTables" modified="Wed Feb 16 13:08:45 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <AssemblyLine name="_testReadAllTables">
+        <ModTime>1645013323179</ModTime>
         <Settings>
             <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
             <parameter name="automapattributes">false</parameter>
             <parameter name="createTombstones">false</parameter>
             <parameter name="includeGlobalPrologs">true</parameter>
-            <parameter name="includePrologs">Logger</parameter>
+            <parameter name="includePrologs"><![CDATA[FunctionLibrary
+DatasetObject]]></parameter>
             <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
         </Settings>
         <Hooks/>
@@ -14,31 +15,32 @@
         <SandboxConfig/>
         <SimulationConfig>
             <SimulationStates>
-                <Component name="DumpWorkEntry" state="Enabled"/>
-                <Component name="ResultFile" state="Enabled"/>
+                <Component name="StorFollo_Costs" state="Enabled"/>
+                <Component name="ReadTables" state="Enabled"/>
             </SimulationStates>
             <ProxySettings/>
         </SimulationConfig>
         <LogConfig/>
         <ContainerEF name="EntryFeedContainer">
-            <ModTime>1643225215981</ModTime>
-            <Connector name="ResultFile">
-                <InheritFrom>system:/Connectors/ibmdi.FileSystem</InheritFrom>
-                <ModTime>1643225215981</ModTime>
+            <ModTime>1644487430028</ModTime>
+        </ContainerEF>
+        <ContainerDF name="DataFlowContainer">
+            <ModTime>1645013323179</ModTime>
+            <Connector name="StorFollo_Costs">
+                <InheritFrom>/Connectors/StorFollo_Costs</InheritFrom>
+                <ModTime>1644561973976</ModTime>
                 <ConnectorMode>Iterator</ConnectorMode>
-                <ConnectorState>Enabled</ConnectorState>
+                <ConnectorState>Passive</ConnectorState>
                 <Configuration>
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643225206942</ModTime>
-                    <parameter name="filePath">BrukerGruppeSync/ResultFile_220120_02_00.csv</parameter>
+                    <ModTime>1644487413198</ModTime>
                 </Configuration>
                 <Parser>
-                    <InheritFrom>system:/Parsers/ibmdi.CSV</InheritFrom>
-                    <ModTime>1643225210938</ModTime>
+                    <InheritFrom>[parent]</InheritFrom>
                 </Parser>
                 <AttributeMap name="Input">
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643225215981</ModTime>
+                    <ModTime>1644487430028</ModTime>
                     <AttributeMapItem>
                         <Name>*</Name>
                         <Type>simple</Type>
@@ -47,29 +49,31 @@
                 </AttributeMap>
                 <AttributeMap name="Output">
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643225164392</ModTime>
                 </AttributeMap>
                 <DeltaSettings>
-                    <ModTime>1643225170680</ModTime>
+                    <ModTime>1644240520981</ModTime>
                     <WhenToCommit>After every database operation</WhenToCommit>
                     <RowLocking>SERIALIZABLE</RowLocking>
                     <ChangeDetectionMode>DETECT_ALL</ChangeDetectionMode>
                 </DeltaSettings>
                 <Schema name="Input">
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643225164392</ModTime>
                 </Schema>
                 <Schema name="Output">
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643225164392</ModTime>
                 </Schema>
                 <LinkCriteria>
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643225164392</ModTime>
                 </LinkCriteria>
                 <Hooks>
                     <InheritFrom>[parent]</InheritFrom>
-                    <ModTime>1643225164392</ModTime>
+                    <ModTime>1644561973976</ModTime>
+                    <Hook name="after_initialize">
+                        <InheritFrom>[no inheritance]</InheritFrom>
+                        <Name>after_initialize</Name>
+                        <Script>sf = thisConnector.connector;</Script>
+                        <Enabled>true</Enabled>
+                    </Hook>
                 </Hooks>
                 <CheckpointConfig/>
                 <SandboxConfig/>
@@ -83,14 +87,39 @@
                 </PoolDefinition>
                 <PoolInstance/>
             </Connector>
-        </ContainerEF>
-        <ContainerDF name="DataFlowContainer">
-            <ModTime>1643634389417</ModTime>
-            <Script name="DumpWorkEntry">
-                <ModTime>1643634389417</ModTime>
-                <parameter name="script"><![CDATA[// Dump the work entry
-task.dumpEntry(work);
-//log.msg(work.ResourceID + " " + work.Groups);]]></parameter>
+            <Script name="ReadTables">
+                <ModTime>1645013323179</ModTime>
+                <parameter name="enabled">true</parameter>
+                <parameter name="script"><![CDATA[var tables = sf.queryTables().toArray();
+var lookfor = {server: 0};
+
+java.util.Arrays.sort(tables);
+
+for (var table in tables) {
+	task.logmsg("--> " + table);
+}
+
+for (var table in tables) {
+	sf.execSQLSelect("select * from " + table);
+	var e = sf.getNextSQLSelectEntry();
+	if (e == null) continue;
+	var names = e.getAttributeNames();
+	java.util.Arrays.sort(names);
+	var atts = [];
+	for (var name in names) {
+		var val = e.getObject(name);
+
+		var str = "  " + lj(name,25) + ": " 
+			+ lj((e.getString(name) || "").substring(0, 45), 50) + " - ";
+		try {
+			str += e.getObject(name).getClass();
+		} catch (ex) {
+			str += typeof e.getObject(name);
+		}
+		atts.push(str);
+	}
+	//task.logmsg("\n------ " + table.toUpperCase() + " ------\n" + atts.join("\n"));
+}]]></parameter>
             </Script>
         </ContainerDF>
         <ThreadOptions/>

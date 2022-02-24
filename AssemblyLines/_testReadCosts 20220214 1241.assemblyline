@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="69" UUID="f15eaa89-c513-4c6e-b8c9-6c2a463a6220" created="Mon Feb 07 14:28:31 CET 2022" createdBy="Eddie Hartman" main="_testReadCosts" modified="Mon Feb 14 12:36:13 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <AssemblyLine name="_testReadCosts">
+        <ModTime>1644838573021</ModTime>
+        <Settings/>
+        <Hooks/>
+        <CheckpointConfig/>
+        <SandboxConfig/>
+        <SimulationConfig>
+            <SimulationStates>
+                <Component name="StorFollo_Costs" state="Enabled"/>
+                <Component name="Dataset object" state="Enabled"/>
+                <Component name="Do queries" state="Enabled"/>
+            </SimulationStates>
+            <ProxySettings/>
+        </SimulationConfig>
+        <LogConfig/>
+        <ContainerEF name="EntryFeedContainer">
+            <ModTime>1644487430028</ModTime>
+        </ContainerEF>
+        <ContainerDF name="DataFlowContainer">
+            <ModTime>1644838573021</ModTime>
+            <Connector name="StorFollo_Costs">
+                <InheritFrom>/Connectors/StorFollo_Costs</InheritFrom>
+                <ModTime>1644561973976</ModTime>
+                <ConnectorMode>Iterator</ConnectorMode>
+                <ConnectorState>Passive</ConnectorState>
+                <Configuration>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487413198</ModTime>
+                </Configuration>
+                <Parser>
+                    <InheritFrom>[parent]</InheritFrom>
+                </Parser>
+                <AttributeMap name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487430028</ModTime>
+                    <AttributeMapItem>
+                        <Name>*</Name>
+                        <Type>simple</Type>
+                        <Simple>*</Simple>
+                    </AttributeMapItem>
+                </AttributeMap>
+                <AttributeMap name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </AttributeMap>
+                <DeltaSettings>
+                    <ModTime>1644240520981</ModTime>
+                    <WhenToCommit>After every database operation</WhenToCommit>
+                    <RowLocking>SERIALIZABLE</RowLocking>
+                    <ChangeDetectionMode>DETECT_ALL</ChangeDetectionMode>
+                </DeltaSettings>
+                <Schema name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <Schema name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <LinkCriteria>
+                    <InheritFrom>[parent]</InheritFrom>
+                </LinkCriteria>
+                <Hooks>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644561973976</ModTime>
+                    <Hook name="after_initialize">
+                        <InheritFrom>[no inheritance]</InheritFrom>
+                        <Name>after_initialize</Name>
+                        <Script>sf = thisConnector.connector;</Script>
+                        <Enabled>true</Enabled>
+                    </Hook>
+                </Hooks>
+                <CheckpointConfig/>
+                <SandboxConfig/>
+                <Reconnect>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ReconnectRules/>
+                </Reconnect>
+                <Operations/>
+                <PoolDefinition>
+                    <InheritFrom>[parent]</InheritFrom>
+                </PoolDefinition>
+                <PoolInstance/>
+            </Connector>
+            <Script name="Dataset object">
+                <ModTime>1644838573021</ModTime>
+                <parameter name="script"><![CDATA[var Dataset = function(ctr, stmt, flds) {
+	this.keys = {};
+	
+	this.initialize = function() {
+		var cnt = 0;
+		var e;
+		var data;
+		var fldArray = (flds instanceof Array) ? flds : [flds];
+		var custId;
+		
+		task.logmsg("Executing " + stmt + " for keys " + fldArray.join(", "));
+		
+		try {
+			ctr.execSQLSelect(stmt);
+			while ((e = ctr.getNextSQLSelectEntry()) != null) {
+				data = fromJson(e.toJSON());
+				
+				custId = e.getString("customer_id") || "";
+				
+				for (var fldCnt = 0; fldCnt < fldArray.length; fldCnt++) {
+					var fld = fldArray[fldCnt].toLowerCase();
+					this.keys[fld] = this.keys[fld] || {};
+					
+					var val = (e.getString(fld) || "").trim();
+					if (!val) {
+						task.logmsg("ERROR", "No value for " + fld + " found for " + e.toJSON());
+					} else {
+						var useKey = (fld == "id") ? val : custId + val;
+						if (this.keys[fld][useKey]) {
+							task.logmsg("ERROR", "Duplicate key ("
+											+ fld + " : " + useKey
+											+ ") for " + e.toJSON()
+											+ "\n     - previous: " + toJson(this.keys[fld][useKey]));
+						}
+						this.keys[fld][useKey] = data;	
+					}
+				}
+				cnt++;
+			}
+		} catch (ex){
+			task.logmsg("ERROR", "Error performing statment: " + stmt + " - " + ex);
+		}
+		task.logmsg("  -> found " + cnt + " objects");
+	}
+	
+	// Here comes initialization
+	
+	this.initialize();
+
+	return this;
+}]]></parameter>
+            </Script>
+            <Script name="Do queries">
+                <ModTime>1644838429556</ModTime>
+                <parameter name="script"><![CDATA[apps = new Dataset(sf, "select * from costs_application", ["id","name"]);
+
+for (name in apps.keys) {
+	task.logmsg(name)
+	for (obj in apps.keys[name]) {
+		task.logmsg("   " + toJson(obj));
+	}
+}]]></parameter>
+            </Script>
+        </ContainerDF>
+        <ThreadOptions/>
+        <Operations/>
+        <InitParams>
+            <Schema name="AssemblyLineInitParams"/>
+        </InitParams>
+    </AssemblyLine>
+</MetamergeConfig>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="201" UUID="f15eaa89-c513-4c6e-b8c9-6c2a463a6220" created="Mon Feb 07 14:28:31 CET 2022" createdBy="Eddie Hartman" main="_testReadCosts" modified="Thu Feb 17 12:29:32 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <AssemblyLine name="_testReadCosts">
+        <ModTime>1645015564420</ModTime>
+        <Settings>
+            <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
+            <parameter name="automapattributes">false</parameter>
+            <parameter name="createTombstones">false</parameter>
+            <parameter name="includeGlobalPrologs">true</parameter>
+            <parameter name="includePrologs"><![CDATA[FunctionLibrary
+DatasetObject]]></parameter>
+            <parameter name="nullBehaviorDialog">showNullBehavior</parameter>
+        </Settings>
+        <Hooks/>
+        <CheckpointConfig/>
+        <SandboxConfig/>
+        <SimulationConfig>
+            <SimulationStates>
+                <Component name="StorFollo_Costs" state="Enabled"/>
+                <Component name="Set up Datasets" state="Enabled"/>
+                <Component name="Find cloud app with hours &gt; 1" state="Enabled"/>
+                <Component name="Find apps with some cloud and some not" state="Enabled"/>
+                <Component name="App report" state="Enabled"/>
+                <Component name="App report_1" state="Enabled"/>
+            </SimulationStates>
+            <ProxySettings/>
+        </SimulationConfig>
+        <LogConfig/>
+        <ContainerEF name="EntryFeedContainer">
+            <ModTime>1644487430028</ModTime>
+        </ContainerEF>
+        <ContainerDF name="DataFlowContainer">
+            <ModTime>1645015564420</ModTime>
+            <Connector name="StorFollo_Costs">
+                <InheritFrom>/Connectors/StorFollo_Costs</InheritFrom>
+                <ModTime>1644561973976</ModTime>
+                <ConnectorMode>Iterator</ConnectorMode>
+                <ConnectorState>Passive</ConnectorState>
+                <Configuration>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487413198</ModTime>
+                </Configuration>
+                <Parser>
+                    <InheritFrom>[parent]</InheritFrom>
+                </Parser>
+                <AttributeMap name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644487430028</ModTime>
+                    <AttributeMapItem>
+                        <Name>*</Name>
+                        <Type>simple</Type>
+                        <Simple>*</Simple>
+                    </AttributeMapItem>
+                </AttributeMap>
+                <AttributeMap name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </AttributeMap>
+                <DeltaSettings>
+                    <ModTime>1644240520981</ModTime>
+                    <WhenToCommit>After every database operation</WhenToCommit>
+                    <RowLocking>SERIALIZABLE</RowLocking>
+                    <ChangeDetectionMode>DETECT_ALL</ChangeDetectionMode>
+                </DeltaSettings>
+                <Schema name="Input">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <Schema name="Output">
+                    <InheritFrom>[parent]</InheritFrom>
+                </Schema>
+                <LinkCriteria>
+                    <InheritFrom>[parent]</InheritFrom>
+                </LinkCriteria>
+                <Hooks>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ModTime>1644561973976</ModTime>
+                    <Hook name="after_initialize">
+                        <InheritFrom>[no inheritance]</InheritFrom>
+                        <Name>after_initialize</Name>
+                        <Script>sf = thisConnector.connector;</Script>
+                        <Enabled>true</Enabled>
+                    </Hook>
+                </Hooks>
+                <CheckpointConfig/>
+                <SandboxConfig/>
+                <Reconnect>
+                    <InheritFrom>[parent]</InheritFrom>
+                    <ReconnectRules/>
+                </Reconnect>
+                <Operations/>
+                <PoolDefinition>
+                    <InheritFrom>[parent]</InheritFrom>
+                </PoolDefinition>
+                <PoolInstance/>
+            </Connector>
+            <Script name="Set up Datasets">
+                <InheritFrom>/Scripts/Set up Datasets</InheritFrom>
+                <ModTime>1645097367973</ModTime>
+            </Script>
+            <Script name="Find cloud app with hours &gt; 1">
+                <ModTime>1644850336707</ModTime>
+                <parameter name="enabled">false</parameter>
+                <parameter name="script"><![CDATA[badApps = {};
+report = [];
+
+for (id in apps.ids) {
+	app = apps.ids[id];
+	sector = app.sector_id;
+	badApps[sector] = badApps[sector] || new java.util.ArrayList();
+	if (app.cloud && app.internal_hours > 1) {
+		badApps[sector].add(app.name + " (" + app.customer_id + ") - hours: " + app.internal_hours)
+	}
+}
+
+for (sector in badApps) {
+	arr = badApps[sector].toArray();
+	if (arr.length == 0) continue;
+	
+	toShow = [];
+	java.util.Arrays.sort(arr);
+	for (a in arr) {
+		toShow.push(a);
+	}
+
+	report.push("\n\n-------- Cloud apps in " + sectors.get(sector).name 
+				+ "(" + sectors.get(sector).customer_id + ")"
+				+ " are set up with > 1 hours for intern drift:\n" 
+		+ toShow.join("\n"))
+}
+
+task.logmsg("\n" + report.join("\n") + "\n\n--");]]></parameter>
+            </Script>
+            <Script name="Find apps with some cloud and some not">
+                <ModTime>1645015564420</ModTime>
+                <parameter name="enabled">true</parameter>
+                <parameter name="script"><![CDATA[names = apps.byField("name");
+report = [];
+
+lineCnt = 0;
+for (name in names) {
+	var objArray = names[name];
+	for (var app in objArray) {
+		var cloudCnt = 0;
+		if (app.cloud) {
+			cloudCnt++;
+		}
+	}
+	if (cloudCnt != objArray.length && cloudCnt > 0) {
+		report.push("   " + lj(name, 50, lineCnt++) + "  total: " + objArray.length + "  cloud: " + cloudCnt);		
+	}
+}
+
+task.logmsg("\n\n--------- Applications where only some are defined as 'i sky':\n" + report.join("\n"))]]></parameter>
+            </Script>
+            <Script name="App report">
+                <ModTime>1644911959513</ModTime>
+                <parameter name="enabled">false</parameter>
+                <parameter name="script"><![CDATA[list = new java.util.ArrayList();
+
+linecnt = 0;
+for (id in apps.ids) {
+	app = apps.get(id);
+	name = app.name;
+	sector = sectors.get(app.sector_id).name;
+	cust = app.customer_id;
+	
+	extcost = app.external_cost;
+	license = app.licence_cost;
+	hours = app.internal_hours;
+	intcost = 650 * 12 * hours;
+
+	// Now get cost of servers attached to this app	
+	var serverCost = 0;
+	appservers = app_servers.get(app.id, "application_id");
+	for (appServer in appservers) {
+		server = servers.get(appServer.server_id);
+		product = products.get(server.product_id);
+		serverCost += product.price;
+	}
+	
+	list.add("   " + lj(name, 60, -1) 
+			+ "| " + lj(cust, 5) 
+			+ "| " + lj(sector, 15)
+			+ "| license: " + rj(license, 6) 
+//			+ "| hours: " + rj(hours, 2)
+			+ "| driftkost: " + rj(intcost, 6)
+			+ "| serverkost: " + rj(serverCost, 5));
+}
+
+arr = list.toArray();
+java.util.Arrays.sort(arr);
+
+task.logmsg("\n-------- Application costs:\n" + arr.join("\n"))]]></parameter>
+            </Script>
+            <Script name="App report_1">
+                <ModTime>1645015395804</ModTime>
+                <parameter name="enabled">false</parameter>
+                <parameter name="script"><![CDATA[list = new java.util.ArrayList();
+
+appList = apps.get("eDemokrati", "name");
+app = appList[0];
+linecnt = 0;
+name = app.name;
+sector = sectors.get(app.sector_id).name;
+cust = app.customer_id;
+
+extcost = app.external_cost;
+license = app.licence_cost;
+hours = app.internal_hours;
+intcost = 650 * 12 * hours;
+
+// Now get cost of servers attached to this app	
+var serverCost = 0;
+appservers = app_servers.get(app.id, "application_id");
+for (appServer in appservers) {
+	server = servers.get(appServer.server_id);
+	product = products.get(server.product_id);
+	prodDelivery = product_delivery.get(product.id);
+}
+
+i = 42;]]></parameter>
+            </Script>
+        </ContainerDF>
+        <ThreadOptions/>
+        <Operations/>
+        <InitParams>
+            <Schema name="AssemblyLineInitParams"/>
+        </InitParams>
+    </AssemblyLine>
+</MetamergeConfig>

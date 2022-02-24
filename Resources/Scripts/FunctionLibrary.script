@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="3" UUID="7f07587c-fc6b-49d1-b36f-874a1d67ea65" created="Wed Feb 16 13:02:44 CET 2022" createdBy="Eddie Hartman" main="FunctionLibrary" modified="Wed Feb 16 13:06:39 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <Script name="FunctionLibrary">
+        <ModTime>1645013198786</ModTime>
+        <parameter name="includeFiles"/>
+        <parameter name="script"><![CDATA[_VRS = "20220216 1305"; // Initial version
+
+function log(lvl, msg) {
+	if (typeof lvl == "undefined") {
+		lvl = "INFO";
+		msg = "";
+	} else
+	if (typeof msg == "undefined") {
+		msg = lvl;
+		lvl = "INFO";
+	}
+	
+	task.logmsg(lvl, msg);
+}
+
+log("FunctionLibrary v" + _VRS);
+
+function lj(txt, len, lineCnt) {
+	txt = String(txt);
+	if (txt.length > len) return txt;
+	if (txt.length % 2 == 1) txt = txt + " ";
+	if (typeof lineCnt == "undefined" || (lineCnt % 2 == 0 && lineCnt > 0)) {
+		return (txt + "                                                                  ").substring(0, len);
+	} else {
+		return (txt + " . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .").substring(0, len);
+	}
+}
+
+function rj(txt, len, lineCnt) {
+	txt = String(txt);
+	if (txt.length > len) return txt;
+	if (typeof lineCnt == "undefined" || (lineCnt % 2 == 0 && lineCnt > 0)) {
+		var pad = "                                                                  ";
+	} else {
+		var pad = " . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .";
+	}
+	return pad.substring(0, len - txt.length) + txt;
+}]]></parameter>
+    </Script>
+</MetamergeConfig>

@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="28" UUID="a107c3b8-197c-4c0d-9c77-4b45ffbc379c" created="Mon Jan 31 10:12:06 CET 2022" createdBy="Eddie Hartman" main="TestMail" modified="Mon Jan 31 12:15:11 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="29" UUID="a107c3b8-197c-4c0d-9c77-4b45ffbc379c" created="Mon Jan 31 10:12:06 CET 2022" createdBy="Eddie Hartman" main="TestMail" modified="Mon Jan 31 14:58:37 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
     <AssemblyLine name="TestMail">
-        <ModTime>1643627711323</ModTime>
+        <ModTime>1643634655489</ModTime>
         <Settings>
             <parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
             <parameter name="automapattributes">false</parameter>
@@ -23,9 +23,9 @@ Mailer]]></parameter>
         <LogConfig/>
         <ContainerEF name="EntryFeedContainer"/>
         <ContainerDF name="DataFlowContainer">
-            <ModTime>1643627711323</ModTime>
+            <ModTime>1643634655489</ModTime>
             <Script name="Test">
-                <ModTime>1643627711323</ModTime>
+                <ModTime>1643634655489</ModTime>
                 <parameter name="script"><![CDATA[var args = {
 	hostname: getProperty("smtp.hostname"),
 	port: getPropertyInt("smtp.port"),
@@ -37,8 +37,9 @@ Mailer]]></parameter>
 mail = new Mailer(args);
 
 mail.send({
-	to: "knut.haug@storfolloikt.no; eddie.hartman@storfolloikt.no",
+	//to: "knut.haug@storfolloikt.no; eddie.hartman@storfolloikt.no",
 	//to: "eddie.hartman@storfolloikt.no",
+	to: "anders.birkenes@storfolloikt.no",
 	from: "tdi@storfolloikt.no",
 	subject: "Test Email",
 	body: "BrukerGruppeSync/MailTemplate.html",

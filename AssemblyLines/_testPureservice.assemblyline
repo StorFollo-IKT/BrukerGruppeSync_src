@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="11" UUID="30d27bc4-bbe9-4b60-ae50-06c3f06dd2ba" created="Wed Feb 09 17:29:01 CET 2022" createdBy="Eddie Hartman" main="_testPureservice" modified="Wed Feb 09 17:49:45 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <AssemblyLine name="_testPureservice">
+        <ModTime>1644425385056</ModTime>
+        <Settings/>
+        <Hooks/>
+        <CheckpointConfig/>
+        <SandboxConfig/>
+        <SimulationConfig>
+            <SimulationStates>
+                <Component name="Test" state="Enabled"/>
+            </SimulationStates>
+            <ProxySettings/>
+        </SimulationConfig>
+        <LogConfig/>
+        <ContainerEF name="EntryFeedContainer"/>
+        <ContainerDF name="DataFlowContainer">
+            <ModTime>1644425385056</ModTime>
+            <Script name="Test">
+                <ModTime>1644425385056</ModTime>
+                <parameter name="script"><![CDATA[var url = "https://storfolloikt.pureservice.com/api/ticket/?start=10&limit=5'";
+var url2 = "https://storfolloikt.pureservice.com/api/status";
+var urlAuth = "https://pureservice.com/authentication";
+var authRest = "?username=eddie.hartman@storfolloikt.no&password=Mirakami23a!&role=20";
+var http = system.getConnector("ibmdi.HTTPClient");
+http.setParam("url", urlAuth + authRest);
+
+var requestEntry = system.newEntry();
+//var apiKey = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJQdXJlc2VydmljZS5BcGkuS2V5IiwianRpIjoiZEtnSHJVU1lzTDllR3V5cXNWWUNZNHZneGd0dlowQVdINWtFSEE5QnpEemcyS3Jhdms1UHFDbjc4QTdua1owZk9UUGJGWmZUUjlUVGduQjhmMmVmRmc9PSJ9.Kkgz9f0W-2TnuwDMhcVx-9ilhulQGr1ul2k7d8awfNc";
+//requestEntry["http.X-Authorization-Key"] = apiKey;
+//requestEntry["http.Accept"] = "application/vnd.api+json";
+
+http.initialize(null);
+
+responseEntry = http.queryReply(requestEntry);
+
+task.dumpEntry(responseEntry);]]></parameter>
+            </Script>
+        </ContainerDF>
+        <ThreadOptions/>
+        <Operations/>
+        <InitParams>
+            <Schema name="AssemblyLineInitParams"/>
+        </InitParams>
+    </AssemblyLine>
+</MetamergeConfig>

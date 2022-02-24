@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="12" UUID="82372325-5b00-48e8-911a-864bfbe98097" created="Wed Feb 16 13:53:24 CET 2022" createdBy="Eddie Hartman" main="Set up Datasets" modified="Mon Feb 21 12:28:29 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+    <Script name="Set up Datasets">
+        <ModTime>1645173658394</ModTime>
+        <parameter name="includeFiles"/>
+        <parameter name="script"><![CDATA[apps = new Dataset(sf, "costs_application");
+sectors = new Dataset(sf, "costs_sector");
+servers = new Dataset(sf, "costs_server");
+servers_customers = new Dataset(sf, "")
+app_servers = new Dataset(sf, "costs_application_servers");
+products = new Dataset(sf, "costs_product");
+product_groups = new Dataset(sf, "costs_productgroup");
+product_delivery = new Dataset(sf, "costs_productdelivery");
+productgroup_products = new Dataset(sf, "costs_productgroup_products");
+product_types = new Dataset(sf, "costs_producttype");
+
+//	accountings = new Dataset(sf, "costs_accounting");
+
+//invoice_serverdetails = new Dataset(sf, "invoice_serverdetail");
+//invoice_linedetails = new Dataset(sf, "invoice_invoicelinedetail");
+//invoice_lines = new Dataset(sf, "invoice_invoiceline");]]></parameter>
+    </Script>
+</MetamergeConfig>

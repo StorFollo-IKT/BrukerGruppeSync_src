@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="34" UUID="c75ebdf8-2ebe-49ef-8196-5d7e6a3f56ec" created="Tue Jan 25 12:25:42 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Mon Jan 31 12:08:04 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
+<?xml version="1.0" encoding="UTF-8"?><MetamergeConfig Cycle="41" UUID="c75ebdf8-2ebe-49ef-8196-5d7e6a3f56ec" created="Tue Jan 25 12:25:42 CET 2022" createdBy="Eddie Hartman" main="BrukerGruppeSync" modified="Thu Feb 10 10:53:28 CET 2022" modifiedBy="Eddie Hartman" project="BrukerGruppeSync" version="7.1.1">
     <Container name="BrukerGruppeSync">
-        <ModTime>1643626365465</ModTime>
+        <ModTime>1644486802698</ModTime>
         <Container name="Data">
-            <ModTime>1643626365465</ModTime>
+            <ModTime>1644486802698</ModTime>
             <ParameterList name="ad.password">
                 <parameter name="Property">true</parameter>
-                <parameter name="Protect">true</parameter>
+                <parameter name="Protect">false</parameter>
                 <parameter name="serverName">ad.password</parameter>
-                <parameter name="serverProtect">true</parameter>
+                <parameter name="serverProtect">false</parameter>
                 <parameter name="serverValue"/>
                 <parameter name="value"/>
             </ParameterList>
@@ -29,6 +29,32 @@
                 <parameter name="serverValue"/>
                 <parameter name="value"/>
             </ParameterList>
+            <ParameterList name="sfcosts.driver">
+                <parameter name="Property">true</parameter>
+                <parameter name="serverName">sfcosts.driver</parameter>
+                <parameter name="serverValue">com.mysql.cj.jdbc.Driver</parameter>
+                <parameter name="value">com.mysql.cj.jdbc.Driver</parameter>
+            </ParameterList>
+            <ParameterList name="sfcosts.password">
+                <parameter name="Property">true</parameter>
+                <parameter name="Protect">false</parameter>
+                <parameter name="serverName">sfcosts.password</parameter>
+                <parameter name="serverProtect">false</parameter>
+                <parameter name="serverValue">vom4ko</parameter>
+                <parameter name="value">vom4ko</parameter>
+            </ParameterList>
+            <ParameterList name="sfcosts.url">
+                <parameter name="Property">true</parameter>
+                <parameter name="serverName">sfcosts.url</parameter>
+                <parameter name="serverValue">jdbc:mysql://sftool.storfollo.local/storfollo_costs</parameter>
+                <parameter name="value">jdbc:mysql://sftool.storfollo.local/storfollo_costs</parameter>
+            </ParameterList>
+            <ParameterList name="sfcosts.username">
+                <parameter name="Property">true</parameter>
+                <parameter name="serverName">sfcosts.username</parameter>
+                <parameter name="serverValue">storfollo_costs_readonly</parameter>
+                <parameter name="value">storfollo_costs_readonly</parameter>
+            </ParameterList>
             <ParameterList name="smtp.hostname">
                 <parameter name="Property">true</parameter>
                 <parameter name="serverName">smtp.hostname</parameter>
@@ -40,8 +66,8 @@
                 <parameter name="Protect">true</parameter>
                 <parameter name="serverName">smtp.password</parameter>
                 <parameter name="serverProtect">true</parameter>
-                <parameter name="serverValue">{encr}AqernbavKA2nxiIXjXR0gFVOmwDzpHGcNBmC5vylC3hP8F4sjFyKvDqU6ZC39jKS2rpo87oMxL0BdQfRSjIpYf/zpBMRlkCoW8r+tt2dYx7RB860E1u0xd+/GzlmnyxPhjLpi3TbHxJMuLU1FREtWcPbyxvbwrxtbi4me25lAgY=</parameter>
-                <parameter name="value">{encr}AqernbavKA2nxiIXjXR0gFVOmwDzpHGcNBmC5vylC3hP8F4sjFyKvDqU6ZC39jKS2rpo87oMxL0BdQfRSjIpYf/zpBMRlkCoW8r+tt2dYx7RB860E1u0xd+/GzlmnyxPhjLpi3TbHxJMuLU1FREtWcPbyxvbwrxtbi4me25lAgY=</parameter>
+                <parameter name="serverValue">scmqsozlmplskzyo</parameter>
+                <parameter name="value">scmqsozlmplskzyo</parameter>
             </ParameterList>
             <ParameterList name="smtp.port">
                 <parameter name="Property">true</parameter>
